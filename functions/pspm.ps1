@@ -10,7 +10,10 @@ function pspm {
         # Parameter help description
         [Parameter()]
         [string]
-        $PackageName
+        $PackageName,
+
+        [Parameter()]
+        [switch]$Clean
     )
 
     $script:moduleRoot = Split-Path -Parent $PSScriptRoot
@@ -20,8 +23,11 @@ function pspm {
     $PackageJsonFile = Convert-Path (Join-path $currentDir '\package.json') -ErrorAction Stop
     $PackageJson = Get-Content $PackageJsonFile -Raw | ConvertFrom-Json
 
-    if (-Not (Test-Path (Join-path $currentDir '\Modules'))) {
-        New-Item -Path (Join-path $currentDir '\Modules') -ItemType Directory
+    if (-Not (Test-Path $moduleDir)) {
+        New-Item -Path $moduleDir -ItemType Directory
+    }
+    elseif($Clean){
+        Get-ChildItem -Path $moduleDir -Directory | Remove-Item -Recurse -Force
     }
 
     $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
