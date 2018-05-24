@@ -245,3 +245,46 @@ function parseVersion {
         $ReturnHash
     }
 }
+
+
+function parseModuleType {
+    param
+    (
+        [Parameter(Mandatory)]
+        [string]
+        $Name
+    )
+
+    switch -regex ($Name) {
+        #Git Urls
+        '^git*+:' {
+            #Not implemented
+            break
+        }
+
+        #Local path & Urls
+        '^<http|https|file>://' {
+            #Not implemented
+            break
+        }
+
+        # GitHub Urls
+        '^[^/]+/[^/]+' {
+            #Not implemented
+            break
+        }
+
+        # <name>@<version>
+        '^.+@.+' {
+            #Not implemented
+            break
+        }
+
+        # <name>
+        Default {
+
+        }
+    }
+
+}
+
