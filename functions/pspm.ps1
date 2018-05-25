@@ -250,41 +250,81 @@ function parseVersion {
 function parseModuleType {
     param
     (
+        [Parameter()]
+        [string]
+        $Name,
+
         [Parameter(Mandatory)]
         [string]
-        $Name
+        $Version
     )
 
-    switch -regex ($Name) {
-        #Git Urls
-        '^git*+:' {
-            #Not implemented
-            break
-        }
+    $Result = @{}
 
-        #Local path & Urls
-        '^<http|https|file>://' {
-            #Not implemented
-            break
-        }
+    if ($PSBoundParameters.ContainsKey('Name')) {
+        #dependencies
+    }
+    else {
+        #parameter
+        switch -regex ($Version) {
+            #Git Urls
+            '^git*+:' {
+                #Not implemented
+                break
+            }
 
-        # GitHub Urls
-        '^[^/]+/[^/]+' {
-            #Not implemented
-            break
-        }
+            #Local path & Urls
+            '^<http|https|file>://' {
+                #Not implemented
+                break
+            }
 
-        # <name>@<version>
-        '^.+@.+' {
-            #Not implemented
-            break
-        }
+            # GitHub Urls
+            '^[^/]+/[^/]+' {
+                $local:userAccount = $_.Split("/")[0]
+                $local:repoName = $_.Split("/")[1].Split("#")[0]
+                $local:branch = $_.Split("/")[1].Split("#")[1]
 
-        # <name>
-        Default {
+                $Result = @{
+                    Type = 'GitHub'
+                    Name = $repoName
+                    Account = $userAccount
+                    Branch = $branch
+                }
 
+                break
+            }
+
+            # <name>@<version> (PSGallery)
+            '^.+@.+' {
+                $local:moduleName = $_.Split("@")[0]
+                $local:version = $_.Split("@")[1]
+                $local:parsedVersion = parseVersion -Version $version
+
+                $Result = @{
+                    Type = 'PSGallery'
+                    Name = $moduleName
+                    RequiredVersion = $parsedVersion.RequiredVersion
+                    MaximumVersion = $parsedVersion.MaximumVersion
+                    MinimumVersion = $parsedVersion.MinimumVersion
+                }
+
+                break
+            }
+
+            # <name> (PSGallery)
+            Default {
+                $local:moduleName = $_.Split("@")[0]
+
+                $Result = @{
+                    Type = 'PSGallery'
+                    Name = $moduleName
+                }
+            }
         }
     }
+
+    $Result
 
 }
 
