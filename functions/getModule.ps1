@@ -174,7 +174,7 @@ function getModuleFromPSGallery {
         }
 
         Write-Host ('{0}@{1}: Downloading module.' -f $Name, $targetModule.Version)
-        $targetModule | Save-Module -Path $Path -Force
+        $targetModule | Save-Module -Path $Path -Force -ErrorAction Stop
     }
 
     if (Test-Path (Join-path $Path $Name)) {
