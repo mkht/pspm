@@ -96,7 +96,7 @@ function pspm {
                 }
 
                 $PackageJson.dependencies | Add-Member -NotePropertyName $targetModule.Name -NotePropertyValue ([string]$targetModule.ModuleVersion) -Force
-                $PackageJson | ConvertTo-Json | Out-File -FilePath (Join-path $CurrentDir '\package.json') -Force -Encoding utf8
+                $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $CurrentDir '\package.json') -Force -Encoding utf8
             }
         }
     }
