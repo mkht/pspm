@@ -1,4 +1,4 @@
-﻿#Requires -Version 4
+#Requires -Version 4
 
 $modulePath = $PSScriptRoot
 $functionsPath = '\functions'
