@@ -62,13 +62,6 @@ function pspm {
     }
     #endregion
 
-    #region load package.json
-    if (Test-Path (Join-path $CurrentDir '\package.json')) {
-        $PackageJsonFile = Convert-Path (Join-path $CurrentDir '\package.json') -ErrorAction Stop
-        $PackageJson = Get-Content $PackageJsonFile -Raw | ConvertFrom-Json
-    }
-    #endregion
-
     Write-Host ('Modules will be saved in "{0}"' -f $ModuleDir)
     if (-Not (Test-Path $ModuleDir)) {
         New-Item -Path $ModuleDir -ItemType Directory
@@ -86,17 +79,26 @@ function pspm {
         }
     }
     elseif ($PSCmdlet.ParameterSetName -eq 'Json') {
-        $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
-            ForEach-Object {
-            $moduleName = $_.Name
-            $version = $PackageJson.dependencies.($_.Name)
+        if (Test-Path (Join-path $CurrentDir '\package.json')) {
+            $PackageJsonFile = Convert-Path (Join-path $CurrentDir '\package.json') -ErrorAction Stop
+            $PackageJson = Get-Content $PackageJsonFile -Raw | ConvertFrom-Json
+            
+            $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
+                ForEach-Object {
+                $moduleName = $_.Name
+                $version = $PackageJson.dependencies.($_.Name)
 
-            $targetModule = getModule -Name $moduleName -Version $version -Path $ModuleDir -ErrorAction Continue
+                $targetModule = getModule -Name $moduleName -Version $version -Path $ModuleDir -ErrorAction Continue
 
-            if ($targetModule) {
-                Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
-                Import-Module (Join-path $ModuleDir $targetModule.Name) -Force -Global
+                if ($targetModule) {
+                    Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
+                    Import-Module (Join-path $ModuleDir $targetModule.Name) -Force -Global
+                }
             }
+        }
+        else {
+            Write-Error ('Cloud not find package.json in the current directory')
+            return
         }
     }
 }
