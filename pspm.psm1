@@ -3,7 +3,14 @@
 $modulePath = $PSScriptRoot
 $functionsPath = '\functions'
 
-Get-ChildItem (Join-Path $modulePath $functionsPath) -Include "*.ps1" -Recurse | 
-    % { . $_.PsPath }
+$FunctionList = @(
+    'Get-ModuleInfo.ps1',
+    'getModule.ps1',
+    'pspm.ps1'
+)
+
+$FunctionList | foreach {
+    . (Join-Path (Join-Path $modulePath $functionsPath) $_)
+}
 
 Export-ModuleMember -Function pspm
