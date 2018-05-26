@@ -15,5 +15,7 @@ function Get-ModuleInfo {
         return
     }
 
-    Import-PowerShellDataFile $moduleManifest.PsPath
+    $moduleInfo = Import-PowerShellDataFile $moduleManifest.PsPath
+    $moduleInfo.Name = $moduleManifest.BaseName
+    $moduleInfo
 }

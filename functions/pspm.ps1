@@ -38,16 +38,12 @@ function pspm {
     }
 
     if ($PSCmdlet.ParameterSetName -eq 'ModuleName') {
-        $moduleName = $Name.Split("@")[0]
-        $version = $Name.Split("@")[1]
+        $targetModule = getModule -Version $Name -Path $moduleDir
 
-        $versionParam = parseVersion -Version $version
-        getModule -Name $moduleName -Path $moduleDir @versionParam > $null
-
-        $local:moduleInfo = Get-ModuleInfo -Path (Join-path $moduleDir $moduleName) -ErrorAction SilentlyContinue
-
-        Write-Host ('{0}@{1}: Importing module.' -f $moduleName, $moduleInfo.ModuleVersion)
-        Import-Module (Join-path $moduleDir $moduleName) -Force -Global
+        if ($targetModule) {
+            Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
+            Import-Module (Join-path $moduleDir $targetModule.Name) -Force -Global
+        }
     }
     elseif ($PSCmdlet.ParameterSetName -eq 'Json') {
         $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
@@ -55,12 +51,11 @@ function pspm {
             $moduleName = $_.Name
             $version = $PackageJson.dependencies.($_.Name)
 
-            $versionParam = parseVersion -Version $version
-            $targetModule = getModule -Name $moduleName -Path $moduleDir @versionParam -ErrorAction Continue
+            $targetModule = getModule -Name $moduleName -Version $version -Path $moduleDir -ErrorAction Continue
 
             if ($targetModule) {
-                Write-Host ('{0}@{1}: Importing module.' -f $moduleName, $targetModule.Version)
-                Import-Module (Join-path $moduleDir $moduleName) -Force -Global
+                Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
+                Import-Module (Join-path $moduleDir $targetModule.Name) -Force -Global
             }
         }
     }
@@ -68,6 +63,115 @@ function pspm {
 
 
 function getModule {
+    [CmdletBinding()]
+    Param
+    (
+        [Parameter()]
+        [string]
+        $Name,
+
+        [Parameter()]
+        [string]
+        $Version,
+
+        [Parameter(Mandatory)]
+        [string]
+        $Path
+    )
+
+    Convert-Path -Path $Path -ErrorAction Stop > $null  #throw exception when the path not exist
+    
+    $paramHash = @{}
+    if ($PSBoundParameters.ContainsKey('Name')) {
+        $paramHash.Name = $Name
+    }
+    if ($PSBoundParameters.ContainsKey('Version')) {
+        $paramHash.Version = $Version
+    }
+    $moduleType = parseModuleType @paramHash
+
+    switch ($moduleType.Type) {
+        'GitHub' {
+            $local:paramHash = $moduleType
+            $paramHash.Remove('Type')
+            getModuleFromGitHub @paramHash -Path $Path
+        }
+
+        'PSGallery' {
+            $local:paramHash = $moduleType
+            $paramHash.Remove('Type')
+            getModuleFromPSGallery @paramHash -Path $Path
+        }
+    }
+}
+
+
+function getModuleFromGitHub {
+    [CmdletBinding()]
+    Param
+    (
+        # Parameter help description
+        [Parameter(Mandatory)]
+        [string]
+        $Name,
+        
+        [Parameter(Mandatory)]
+        [string]
+        $Account,
+
+        [Parameter()]
+        [string]
+        $Branch,
+
+        [Parameter(Mandatory)]
+        [string]
+        $Path
+    )
+
+    
+    $TempDir = New-Item (Join-Path $env:TEMP '/pspm') -Force -ItemType Directory -ErrorAction Stop
+    $TempName = [System.Guid]::NewGuid().toString() + '.zip'
+
+    $zipUrl = ('https://api.github.com/repos/{0}/{1}/zipball/{2}' -f $Account, $Name, $Branch)
+    
+    try {
+        #Download zip from GitHub
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        Write-Host ('{0}: Downloading module from GitHub.' -f $Name)
+        Invoke-WebRequest -Uri $zipUrl -UseBasicParsing -OutFile (Join-Path $TempDir $TempName) -ErrorAction Stop
+
+        if (Test-Path (Join-Path $TempDir $TempName)) {
+            Expand-Archive -Path (Join-Path $TempDir $TempName) -DestinationPath $TempDir
+            $downloadedModule = Get-ChildItem -Path $TempDir -Filter ('{0}-{1}*' -f $Account, $Name) -Directory
+
+            $moduleInfo = $downloadedModule.PsPath | Get-Moduleinfo
+
+            #Copy to /Modules folder
+            if (Test-Path (Join-Path $Path $moduleInfo.Name)) {
+                Remove-Item -Path (Join-Path $Path $moduleInfo.Name) -Recurse -Force
+            }
+            $downloadedModule | Copy-Item -Destination (Join-Path $Path $moduleInfo.Name) -Recurse -Force -ErrorAction Stop
+
+            #Return module info
+            $moduleInfo
+        }
+        else {
+            throw 'Download failed!'
+        }
+    }
+    catch {
+        throw $_.Exception
+    }
+    finally {
+        if (Test-Path $TempDir) {
+            #Cleanup temp folder
+            Remove-Item $TempDir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+
+function getModuleFromPSGallery {
     [CmdletBinding(DefaultParameterSetName = 'Latest')]
     param
     (
@@ -98,8 +202,6 @@ function getModule {
     )
     
     $local:isSkipDownload = $false
-
-    Convert-Path -Path $Path -ErrorAction Stop > $null  #throw exception when the path not exist
 
     $foundModules = Find-Module -Name $Name -AllVersions -ErrorAction SilentlyContinue
     if ($RequiredVersion) {
@@ -139,8 +241,159 @@ function getModule {
         $targetModule | Save-Module -Path $Path -Force
     }
 
-    $targetModule
+    if (Test-Path (Join-path $Path $Name)) {
+        $moduleInfo = Get-ModuleInfo -Path (Join-path $Path $Name) -ErrorAction SilentlyContinue
+        $moduleInfo
+    }
 }
+
+
+function parseModuleType {
+    param
+    (
+        [Parameter()]
+        [string]
+        $Name,
+
+        [Parameter(Mandatory)]
+        [AllowEmptyString()]
+        [string]
+        $Version
+    )
+
+    $Result = @{}
+
+    if ($PSBoundParameters.ContainsKey('Name')) {
+        #dependencies
+        switch -regex ($Version) {
+            #Git Urls
+            '^git\+?.*:' {
+                #Not implemented
+                Write-Warning ('Sorry! This version specification format is not supported.')
+                break
+            }
+
+            #Local path & Urls
+            '^<http|https|file>://' {
+                #Not implemented
+                Write-Warning ('Sorry! This version specification format is not supported.')
+                break
+            }
+
+            # GitHub Urls
+            '^[^/]+/[^/]+' {
+                $local:userAccount = $_.Split("/")[0]
+                $local:repoName = $_.Split("/")[1].Split("#")[0]
+                $local:branch = $_.Split("/")[1].Split("#")[1]
+
+                $Result = @{
+                    Type    = 'GitHub'
+                    Name    = $repoName
+                    Account = $userAccount
+                    Branch  = $branch
+                }
+
+                break
+            }
+
+            # <version> (PSGallery)
+            Default {
+                $local:parsedVersion = parseVersion -Version $_
+
+                $Result = @{
+                    Type = 'PSGallery'
+                    Name = $Name
+                }
+
+                if ($parsedVersion.RequiredVersion) {
+                    $Result.RequiredVersion = $parsedVersion.RequiredVersion
+                }
+                else {
+                    if ($parsedVersion.MaximumVersion) {
+                        $Result.MaximumVersion = $parsedVersion.MaximumVersion
+                    }
+                    if ($parsedVersion.MinimumVersion) {
+                        $Result.MinimumVersion = $parsedVersion.MinimumVersion
+                    }
+                }
+            }
+        }
+    }
+    else {
+        #parameter
+        switch -regex ($Version) {
+            #Git Urls
+            '^git\+?.*:' {
+                #Not implemented
+                Write-Warning ('Sorry! This version specification format is not supported.')
+                break
+            }
+
+            #Local path & Urls
+            '^<http|https|file>://' {
+                #Not implemented
+                Write-Warning ('Sorry! This version specification format is not supported.')
+                break
+            }
+
+            # GitHub Urls
+            '^[^/]+/[^/]+' {
+                $local:userAccount = $_.Split("/")[0]
+                $local:repoName = $_.Split("/")[1].Split("#")[0]
+                $local:branch = $_.Split("/")[1].Split("#")[1]
+
+                $Result = @{
+                    Type    = 'GitHub'
+                    Name    = $repoName
+                    Account = $userAccount
+                    Branch  = $branch
+                }
+
+                break
+            }
+
+            # <name>@<version> (PSGallery)
+            '^.+@.+' {
+                $local:moduleName = $_.Split("@")[0]
+                $local:version = $_.Split("@")[1]
+                $local:parsedVersion = parseVersion -Version $version
+
+                $Result = @{
+                    Type = 'PSGallery'
+                    Name = $moduleName
+                }
+
+                if ($parsedVersion.RequiredVersion) {
+                    $Result.RequiredVersion = $parsedVersion.RequiredVersion
+                }
+                else {
+                    if ($parsedVersion.MaximumVersion) {
+                        $Result.MaximumVersion = $parsedVersion.MaximumVersion
+                    }
+                    if ($parsedVersion.MinimumVersion) {
+                        $Result.MinimumVersion = $parsedVersion.MinimumVersion
+                    }
+                }
+
+                break
+            }
+
+            # <name> (PSGallery)
+            Default {
+                $local:moduleName = $_.Split("@")[0]
+
+                $Result = @{
+                    Type = 'PSGallery'
+                    Name = $moduleName
+                }
+            }
+        }
+    }
+
+    $Result
+
+}
+
 
 function parseVersion {
     param
@@ -245,3 +498,4 @@ function parseVersion {
         $ReturnHash
     }
 }
+
