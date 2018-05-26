@@ -8,6 +8,9 @@
     # Author of this module
     Author            = 'mkht'
 
+    # Script module or binary module file associated with this manifest.
+    RootModule        = 'pspm.psm1'
+
     # Company or vendor of this module
     CompanyName       = ''
 
