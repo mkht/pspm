@@ -4,6 +4,7 @@ $modulePath = $PSScriptRoot
 $functionsPath = '\functions'
 
 $FunctionList = @(
+    'Format-Json.ps1',
     'Get-ModuleInfo.ps1',
     'getModule.ps1',
     'pspm.ps1'
