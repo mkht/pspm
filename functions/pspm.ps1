@@ -24,6 +24,11 @@ function pspm {
         $Global,
 
         [Parameter()]
+        [alias('s')]
+        [switch]
+        $Save,
+
+        [Parameter()]
         [switch]$Clean
     )
 
@@ -76,12 +81,28 @@ function pspm {
         if ($targetModule) {
             Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
             Import-Module (Join-path $ModuleDir $targetModule.Name) -Force -Global
+
+            if ($Save) {
+                if (Test-Path (Join-path $CurrentDir '\package.json')) {
+                    $PackageJson = Get-Content -Path (Join-path $CurrentDir '\package.json') -Raw | ConvertFrom-Json
+                    if (-Not $PackageJson.dependencies) {
+                        $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
+                    }
+                }
+                else {
+                    $PackageJson = [PSCustomObject]@{
+                        dependencies = [PSCustomObject]@{}
+                    }
+                }
+
+                $PackageJson.dependencies | Add-Member -NotePropertyName $targetModule.Name -NotePropertyValue ([string]$targetModule.ModuleVersion) -Force
+                $PackageJson | ConvertTo-Json | Out-File -FilePath (Join-path $CurrentDir '\package.json') -Force -Encoding utf8
+            }
         }
     }
     elseif ($PSCmdlet.ParameterSetName -eq 'Json') {
         if (Test-Path (Join-path $CurrentDir '\package.json')) {
-            $PackageJsonFile = Convert-Path (Join-path $CurrentDir '\package.json') -ErrorAction Stop
-            $PackageJson = Get-Content $PackageJsonFile -Raw | ConvertFrom-Json
+            $PackageJson = Get-Content -Path (Join-path $CurrentDir '\package.json') -Raw | ConvertFrom-Json
             
             $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
                 ForEach-Object {
