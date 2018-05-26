@@ -109,11 +109,16 @@ function pspm {
                 $moduleName = $_.Name
                 $version = $PackageJson.dependencies.($_.Name)
 
-                $targetModule = getModule -Name $moduleName -Version $version -Path $ModuleDir -ErrorAction Continue
-
-                if ($targetModule) {
-                    Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
-                    Import-Module (Join-path $ModuleDir $targetModule.Name) -Force -Global
+                try {
+                    $targetModule = getModule -Name $moduleName -Version $version -Path $ModuleDir -ErrorAction Stop
+                
+                    if ($targetModule) {
+                        Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
+                        Import-Module (Join-path $ModuleDir $targetModule.Name) -Force -Global
+                    }
+                }
+                catch {
+                    Write-Error ('{0}: {1}' -f $moduleName, $_.Exception.Message)
                 }
             }
         }

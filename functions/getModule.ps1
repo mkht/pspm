@@ -234,7 +234,7 @@ function parseModuleType {
 
             # <version> (PSGallery)
             Default {
-                $local:parsedVersion = parseVersion -Version $_
+                $local:parsedVersion = parseVersion -Version $_ -ErrorAction Stop
 
                 $Result = @{
                     Type = 'PSGallery'
@@ -292,7 +292,7 @@ function parseModuleType {
             '^.+@.+' {
                 $local:moduleName = $_.Split("@")[0]
                 $local:version = $_.Split("@")[1]
-                $local:parsedVersion = parseVersion -Version $version
+                $local:parsedVersion = parseVersion -Version $version -ErrorAction Stop
 
                 $Result = @{
                     Type = 'PSGallery'
@@ -332,6 +332,8 @@ function parseModuleType {
 
 
 function parseVersion {
+    [CmdletBinding()]
+    [OutputType([HashTable])]
     param
     (
         [Parameter(Mandatory)]
@@ -346,6 +348,7 @@ function parseVersion {
 
     if (($Version -eq '') -or ($Version -eq '*') -or ($Version -eq 'latest')) {
         #empty or asterisk or latest means not specified (= latest)
+        $ReturnHash
     }
     elseif ([System.Version]::TryParse($Version, [ref]$null)) {
         #Specified strict version (e.g. '1.2.0'
@@ -415,7 +418,13 @@ function parseVersion {
                     $Revision--
                 }
                 #endregion
-                $ReturnHash.MaximumVersion = [System.Version]::New($Major, $Minor, $Build, $Revision)
+
+                if (@($Major, $Minor, $Build, $Revision).Where( {$_ -lt 0} ).Count) {
+                    $isError = $true
+                }
+                else {
+                    $ReturnHash.MaximumVersion = [System.Version]::New($Major, $Minor, $Build, $Revision)
+                }
             }
             else {
                 $isError = $true
@@ -428,7 +437,7 @@ function parseVersion {
     }
 
     if ($isError) {
-        throw ('"{0}" is unsupported version format' -f $Version)
+        Write-Error ('"{0}" is unsupported version format.' -f $Version)
     }
     else {
         $ReturnHash
