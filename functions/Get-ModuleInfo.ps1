@@ -11,11 +11,22 @@ function Get-ModuleInfo {
     $moduleManifest = @(Get-ChildItem -Path $Path -Filter '*.psd1' -File -Recurse -Depth 1)[0]
     
     if (-Not $moduleManifest) {
-        Write-Error 'Module manifest not found!'
-        return
+        $scriptModule = @(Get-ChildItem -Path $Path -Filter '*.psm1' -File -Recurse -Depth 1)[0]
+        if ($scriptModule) {
+            $moduleInfo = @{
+                Name          = $scriptModule.BaseName
+                ModuleVersion = [System.Version]::New(0, 0)
+            }
+            $moduleInfo
+        }
+        else {
+            Write-Error 'Module manifest not found!'
+            return
+        }
     }
-
-    $moduleInfo = Import-PowerShellDataFile $moduleManifest.PsPath
-    $moduleInfo.Name = $moduleManifest.BaseName
-    $moduleInfo
+    else {
+        $moduleInfo = Import-PowerShellDataFile $moduleManifest.PsPath
+        $moduleInfo.Name = $moduleManifest.BaseName
+        $moduleInfo
+    }
 }
