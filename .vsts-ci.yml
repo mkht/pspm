@@ -1,0 +1,31 @@
+#---------------------------------# 
+#      environment configuration  # 
+#---------------------------------# 
+resources:
+- repo: self
+queue:
+  name: Hosted VS2017
+  demands: DotNetFramework
+
+steps:
+- task: PowerShell@1
+  displayName: install
+  inputs:
+    scriptType: inlineScript
+    inlineScript: |
+     Install-Module -Name Pester -Repository PSGallery -MinimumVersion 4.1.1 -SkipPublisherCheck -Force
+     
+#---------------------------------# 
+#      test configuration         # 
+#---------------------------------# 
+- task: PowerShell@1
+  displayName: test
+  inputs:
+    scriptType: inlineScript
+    inlineScript: |
+     $result = Invoke-Pester -PassThru
+     if ($result.FailedCount -gt 0) { 
+         throw "$($result.FailedCount) tests failed."
+     }
+
+
