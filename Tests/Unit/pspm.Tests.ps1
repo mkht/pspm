@@ -8,7 +8,7 @@ if ((Get-Module Pester).Version -lt [System.Version]'4.1.0') { throw "Pester 4.1
 
 # Import test target module
 Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
-Import-Module -Name $script:moduleRoot -Force
+Import-Module -Name (Join-Path -Path $script:moduleRoot -ChildPath 'pspm.psd1') -Force
 #endregion Initialize
 
 #region Testing
