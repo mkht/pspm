@@ -29,7 +29,7 @@ steps:
   inputs:
     scriptType: inlineScript
     inlineScript: |
-     $testResultsFile = ".\TestsResults.xml"
+     $testResultsFile = "./TestsResults.xml"
      $result = Invoke-Pester -OutputFormat NUnitXml -OutputFile $testResultsFile -PassThru
      if ($result.FailedCount -gt 0) { 
          throw "$($result.FailedCount) tests failed."
@@ -38,6 +38,6 @@ steps:
 - task: PublishTestResults@2
   displayName: publish-testresult
   inputs:
-    testRunner: 'NUnit'
-    testResultsFiles: ".\TestsResults.xml"
+    testRunner: "NUnit"
+    testResultsFiles: "./TestsResults.xml"
 
