@@ -76,28 +76,33 @@ function pspm {
     }
 
     if ($PSCmdlet.ParameterSetName -eq 'ModuleName') {
-        $targetModule = getModule -Version $Name -Path $ModuleDir
+        try {
+            $targetModule = getModule -Version $Name -Path $ModuleDir -ErrorAction Stop
 
-        if ($targetModule) {
-            Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
-            Import-Module (Join-path $ModuleDir $targetModule.Name) -Force -Global
+            if ($targetModule) {
+                Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
+                Import-Module (Join-path $ModuleDir $targetModule.Name) -Force -Global -ErrorAction Stop
 
-            if ($Save) {
-                if (Test-Path (Join-path $CurrentDir '\package.json')) {
-                    $PackageJson = Get-Content -Path (Join-path $CurrentDir '\package.json') -Raw | ConvertFrom-Json
-                    if (-Not $PackageJson.dependencies) {
-                        $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
+                if ($Save) {
+                    if (Test-Path (Join-path $CurrentDir '\package.json')) {
+                        $PackageJson = Get-Content -Path (Join-path $CurrentDir '\package.json') -Raw | ConvertFrom-Json
+                        if (-Not $PackageJson.dependencies) {
+                            $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
+                        }
                     }
-                }
-                else {
-                    $PackageJson = [PSCustomObject]@{
-                        dependencies = [PSCustomObject]@{}
+                    else {
+                        $PackageJson = [PSCustomObject]@{
+                            dependencies = [PSCustomObject]@{}
+                        }
                     }
-                }
 
-                $PackageJson.dependencies | Add-Member -NotePropertyName $targetModule.Name -NotePropertyValue ([string]$targetModule.ModuleVersion) -Force
-                $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $CurrentDir '\package.json') -Force -Encoding utf8
+                    $PackageJson.dependencies | Add-Member -NotePropertyName $targetModule.Name -NotePropertyValue ([string]$targetModule.ModuleVersion) -Force
+                    $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $CurrentDir '\package.json') -Force -Encoding utf8
+                }
             }
+        }
+        catch {
+            Write-Error ('{0}: {1}' -f $Name, $_.Exception.Message)
         }
     }
     elseif ($PSCmdlet.ParameterSetName -eq 'Json') {
@@ -114,7 +119,7 @@ function pspm {
                 
                     if ($targetModule) {
                         Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
-                        Import-Module (Join-path $ModuleDir $targetModule.Name) -Force -Global
+                        Import-Module (Join-path $ModuleDir $targetModule.Name) -Force -Global -ErrorAction Stop
                     }
                 }
                 catch {
