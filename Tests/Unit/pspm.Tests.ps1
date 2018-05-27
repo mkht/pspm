@@ -1,6 +1,7 @@
 #region Initialize
 $script:moduleName = 'pspm'
 $script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$global:CurrentDir = Convert-Path .
 
 # Requires Pester 4.1.0 or higher
 if ((Get-Module Pester).Version -lt [System.Version]'4.1.0') { throw "Pester 4.1.0 or higher is required." }
@@ -49,7 +50,7 @@ try {
             }
 
             AfterAll {
-                Set-Location -Path C:\
+                Set-Location -Path $global:CurrentDir
             }
 
             Context 'Initialize Modules folder' {
@@ -164,5 +165,6 @@ try {
 }
 finally {
     Remove-Module -Name $script:moduleName -Force
+    Remove-Variable -Name CurrentDir -Scope Global
 }
 #endregion Testing
