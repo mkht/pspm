@@ -2,11 +2,8 @@
 $script:moduleName = 'pspm'
 $script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
-# Get Pester 4.3.1
-if (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'Pester'))) {
-    & git @('clone', '-b', '4.3.1', 'https://github.com/pester/Pester.git', (Join-Path -Path $script:moduleRoot -ChildPath 'Pester'))
-}
-Import-Module -Name (Join-Path -Path $script:moduleRoot -ChildPath 'Pester') -Force
+# Requires Pester 4.1.0 or higher
+if ((Get-Module Pester).Version -lt [System.Version]'4.1.0') { throw "Pester 4.1.0 or higher is required." }
 
 # Import test target module
 Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
