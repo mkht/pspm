@@ -152,6 +152,12 @@ try {
                     Assert-MockCalled -CommandName Import-Module -Times 2 -Exactly -Scope It
                 }
 
+                It 'Write-Error when package.json not exist' {
+                    Remove-Item -Path 'TestDrive:\package.json' -Force -ErrorAction SilentlyContinue
+                    
+                    { pspm install -ea Stop } | Should -Throw 'Cloud not find package.json in the current directory'
+                }
+
                 It 'Write-Error when an exception occurred' {
                     New-Item -Path 'TestDrive:\package.json' -Value ($ValidPackageJson1 -f 'invalid_module', $MockModuleVersion1) -Force
                     Mock getModule { throw 'Some exception' } -ParameterFilter {$Name -eq 'invalid_module'}
