@@ -4,7 +4,7 @@ $script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $global:CurrentDir = Convert-Path .
 
 # Requires Pester 4.1.0 or higher
-if ((Get-Module Pester).Version -lt [System.Version]'4.1.0') { throw "Pester 4.1.0 or higher is required." }
+Import-Module Pester -Force -MinimumVersion '4.1.0'
 
 # Import test target module
 Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
