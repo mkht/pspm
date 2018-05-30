@@ -52,9 +52,8 @@ function pspm {
         }
 
         if ($Scope -eq 'Global') {
-            #Check for Admin Credentials
-            $local:currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-            if (-Not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+            #Check for Admin Privileges (only Windows)
+            if (-not (Test-AdminPrivilege)) {
                 throw [System.InvalidOperationException]::new('Administrator rights are required to install modules in "{0}"' -f $GlobalPSModulePath)
                 return
             }

@@ -5,9 +5,10 @@ $functionsPath = '\functions'
 
 #region Load functions
 $FunctionList = @(
-    'Format-Json.ps1',
-    'Get-ModuleInfo.ps1',
-    'getModule.ps1',
+    'Test-AdminPrivilege.ps1'
+    'Format-Json.ps1'
+    'Get-ModuleInfo.ps1'
+    'getModule.ps1'
     'pspm.ps1'
 )
 
