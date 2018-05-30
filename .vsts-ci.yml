@@ -34,6 +34,9 @@ steps:
      if ($result.FailedCount -gt 0) { 
          throw "$($result.FailedCount) tests failed."
      }
+     if ($result.PassedCount -eq 0) { 
+         throw "No tests passed."
+     }
 
 - task: PublishTestResults@2
   displayName: publish-testresult
