@@ -5,13 +5,22 @@ function Test-AdminPrivilege {
     (
     )
 
-    # Except Windows, always return $true
-    if ($PSVersionTable.PSVersion -ge '6.0') {
-        if (-not $IsWindows) {
-            return $true
+    # Test Windows or Not
+    if (IsWindows) {
+        # Check Administrator privilege
+        $local:user = 
+        try {
+            [Security.Principal.WindowsIdentity]::GetCurrent()
         }
+        catch {}
+        (New-Object -TypeName 'Security.Principal.WindowsPrincipal' -ArgumentList $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
     }
+    else {
+        # Except Windows, always return $true
+        $true
+    }
+}
 
-    $local:user = [Security.Principal.WindowsIdentity]::GetCurrent()
-    (New-Object -TypeName 'Security.Principal.WindowsPrincipal' -ArgumentList $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+function IsWindows {
+    [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)
 }
