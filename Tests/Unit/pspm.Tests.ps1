@@ -167,6 +167,20 @@ try {
                     Assert-MockCalled -CommandName Import-Module -Times 0 -Scope It
                 }
             }
+
+            Context 'pspm/pspm version'{
+                    It 'pspm version output own version'{
+                        (pspm version) -as [System.version] | Should -Be $true
+                    }
+
+                    It 'pspm -Version output own version'{
+                        (pspm -Version) -as [System.version] | Should -Be $true
+                    }
+
+                    It 'pspm -v output own version'{
+                        (pspm -v) -as [System.version] | Should -Be $true
+                    }
+            }
         }
     }
 }

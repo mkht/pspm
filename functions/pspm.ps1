@@ -1,14 +1,14 @@
 function pspm {
-    [CmdletBinding(DefaultParameterSetName = 'Json')]
+    [CmdletBinding(DefaultParameterSetName = 'Install')]
     param
     (
         # Parameter help description
-        [Parameter(Mandatory, Position = 0)]
+        [Parameter(Position = 0)]
         [string]
-        $Command = 'install',
+        $Command = 'version',
 
         # Parameter help description
-        [Parameter(position = 1, ParameterSetName = 'ModuleName')]
+        [Parameter(position = 1)]
         [ValidateNotNullOrEmpty()]
         [string]
         $Name,
@@ -29,7 +29,12 @@ function pspm {
         $Save,
 
         [Parameter()]
-        [switch]$Clean
+        [switch]$Clean,
+
+        [Parameter(ParameterSetName = 'Version')]
+        [alias('v')]
+        [switch]
+        $Version
     )
 
     #region Initialize
@@ -39,6 +44,13 @@ function pspm {
     $script:UserPSModulePath = Join-Path ([Environment]::GetFolderPath("MyDocuments")) 'WindowsPowerShell\Modules'
     $script:GlobalPSModulePath = Join-Path $env:ProgramFiles 'WindowsPowerShell\Modules'
     #endregion
+
+    # Get version of myself
+    if(($Command -eq 'version') -or ($PSCmdlet.ParameterSetName -eq 'Version')){
+        $owmInfo = Import-PowerShellDataFile -LiteralPath (Join-Path -Path $script:ModuleRoot -ChildPath 'pspm.psd1')
+        [string]($owmInfo.ModuleVersion)
+        return
+    }
 
     #region Scope parameter
     if ($Global) {
@@ -74,7 +86,8 @@ function pspm {
         Get-ChildItem -Path $ModuleDir -Directory | Remove-Item -Recurse -Force
     }
 
-    if ($PSCmdlet.ParameterSetName -eq 'ModuleName') {
+    # Install from Name
+    if (($PSCmdlet.ParameterSetName -eq 'Install') -and (-not [String]::IsNullOrEmpty($Name))) {
         try {
             $targetModule = getModule -Version $Name -Path $ModuleDir -ErrorAction Stop
 
@@ -104,7 +117,8 @@ function pspm {
             Write-Error ('{0}: {1}' -f $Name, $_.Exception.Message)
         }
     }
-    elseif ($PSCmdlet.ParameterSetName -eq 'Json') {
+    # Install from package.json
+    elseif ($PSCmdlet.ParameterSetName -eq 'Install') {
         if (Test-Path (Join-path $CurrentDir '\package.json')) {
             $PackageJson = Get-Content -Path (Join-path $CurrentDir '\package.json') -Raw | ConvertFrom-Json
             
