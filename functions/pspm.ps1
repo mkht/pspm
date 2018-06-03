@@ -41,8 +41,8 @@ function pspm {
     $script:ModuleRoot = Split-Path -Parent $PSScriptRoot
     $script:CurrentDir = Convert-Path .
     $script:ModuleDir = (Join-path $CurrentDir '\Modules')
-    $script:UserPSModulePath = Join-Path ([Environment]::GetFolderPath("MyDocuments")) 'WindowsPowerShell\Modules'
-    $script:GlobalPSModulePath = Join-Path $env:ProgramFiles 'WindowsPowerShell\Modules'
+    $script:UserPSModulePath = Get-PSModulePath -Scope User
+    $script:GlobalPSModulePath = Get-PSModulePath -Scope Global
     #endregion
 
     # Get version of myself
