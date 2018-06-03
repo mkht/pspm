@@ -1,7 +1,7 @@
 #Requires -Version 4
 
 $modulePath = $PSScriptRoot
-$functionsPath = '\functions'
+$functionsPath = '/functions'
 
 #region Load functions
 $FunctionList = @(

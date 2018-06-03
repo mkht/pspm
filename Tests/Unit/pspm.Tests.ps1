@@ -46,8 +46,8 @@ try {
             Mock Write-Host {}
 
             BeforeEach {
-                Set-Location -Path TestDrive:\
-                Get-ChildItem -Path .\ -Recurse | Remove-Item -Force 
+                Set-Location -Path TestDrive:/
+                Get-ChildItem -Path ./ -Recurse | Remove-Item -Force 
             }
 
             AfterAll {
@@ -59,17 +59,17 @@ try {
 
                 It 'Create Modules folder when not exist' {
                     { pspm install $MockModuleName1 } | Should -Not -Throw
-                    'TestDrive:\Modules' | Should -Exist
+                    'TestDrive:/Modules' | Should -Exist
                 }
 
                 It 'When "-Clean" specified, Remove all folders in Modules folder' {
-                    New-Item -Path 'TestDrive:\Modules\SomeFolder' -ItemType Directory -Force
-                    New-Item -Path 'TestDrive:\Modules\SomeFile.txt' -ItemType File -Force
+                    New-Item -Path 'TestDrive:/Modules/SomeFolder' -ItemType Directory -Force
+                    New-Item -Path 'TestDrive:/Modules/SomeFile.txt' -ItemType File -Force
                     
                     { pspm install $MockModuleName1 -Clean } | Should -Not -Throw
-                    'TestDrive:\Modules' | Should -Exist
-                    'TestDrive:\Modules\SomeFolder' | Should -Not -Exist
-                    'TestDrive:\Modules\SomeFile.txt' | Should -Exist
+                    'TestDrive:/Modules' | Should -Exist
+                    'TestDrive:/Modules/SomeFolder' | Should -Not -Exist
+                    'TestDrive:/Modules/SomeFile.txt' | Should -Exist
                 }
             }
 
@@ -100,27 +100,27 @@ try {
                 Context 'pspm install <module name> -Save' {
 
                     It 'Create package.json if not exist' {
-                        Remove-Item -Path 'TestDrive:\package.json' -Force -ErrorAction SilentlyContinue
+                        Remove-Item -Path 'TestDrive:/package.json' -Force -ErrorAction SilentlyContinue
                         { pspm install $MockModuleName1 -Save } | Should -Not -Throw
 
-                        'TestDrive:\package.json' | Should -Exist
-                        'TestDrive:\package.json' | Should -FileContentMatchMultiline ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1)
+                        'TestDrive:/package.json' | Should -Exist
+                        'TestDrive:/package.json' | Should -FileContentMatchMultiline ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1)
                     }
 
                     It 'Update module info in package.json' {
-                        New-Item -Path 'TestDrive:\package.json' -Value ($ValidPackageJson1 -f $MockModuleName1, '0.0.1') -Force
+                        New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f $MockModuleName1, '0.0.1') -Force
                         { pspm install $MockModuleName1 -Save } | Should -Not -Throw
 
-                        'TestDrive:\package.json' | Should -Exist
-                        'TestDrive:\package.json' | Should -FileContentMatchMultiline ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1)
+                        'TestDrive:/package.json' | Should -Exist
+                        'TestDrive:/package.json' | Should -FileContentMatchMultiline ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1)
                     }
 
                     It 'Add module info in package.json' {
-                        New-Item -Path 'TestDrive:\package.json' -Value ($ValidPackageJson1 -f 'somemodule', '0.0.1') -Force
+                        New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f 'somemodule', '0.0.1') -Force
                         { pspm install $MockModuleName1 -Save } | Should -Not -Throw
 
-                        'TestDrive:\package.json' | Should -Exist
-                        $packageJson = Get-Content -Path 'TestDrive:\package.json' -Raw | ConvertFrom-Json
+                        'TestDrive:/package.json' | Should -Exist
+                        $packageJson = Get-Content -Path 'TestDrive:/package.json' -Raw | ConvertFrom-Json
                         ($packageJson.dependencies | Get-Member -Type NoteProperty | Measure-Object).Count | Should -Be 2
                         $packageJson.dependencies.($MockModuleName1) | Should -Be $MockModuleVersion1
                     }
@@ -137,16 +137,16 @@ try {
 
                 Mock Import-Module {}
 
-                It 'Load .\package.json & Get module & Import it' {
-                    New-Item -Path 'TestDrive:\package.json' -Value ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1) -Force
+                It 'Load ./package.json & Get module & Import it' {
+                    New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1) -Force
                     { pspm install } | Should -Not -Throw
 
                     Assert-MockCalled -CommandName getModule -Times 1 -Exactly -Scope It
                     Assert-MockCalled -CommandName Import-Module -Times 1 -Exactly -Scope It
                 }
 
-                It 'Load .\package.json & Get multiple modules & Import it' {
-                    New-Item -Path 'TestDrive:\package.json' -Value ($ValidPackageJson2 -f $MockModuleName1, $MockModuleVersion1, $MockModuleName2, $MockModuleVersion2) -Force
+                It 'Load ./package.json & Get multiple modules & Import it' {
+                    New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson2 -f $MockModuleName1, $MockModuleVersion1, $MockModuleName2, $MockModuleVersion2) -Force
                     { pspm install } | Should -Not -Throw
 
                     Assert-MockCalled -CommandName getModule -Times 2 -Exactly -Scope It
@@ -154,13 +154,13 @@ try {
                 }
 
                 It 'Write-Error when package.json not exist' {
-                    Remove-Item -Path 'TestDrive:\package.json' -Force -ErrorAction SilentlyContinue
+                    Remove-Item -Path 'TestDrive:/package.json' -Force -ErrorAction SilentlyContinue
                     
                     { pspm install -ea Stop } | Should -Throw 'Cloud not find package.json in the current directory'
                 }
 
                 It 'Write-Error when an exception occurred' {
-                    New-Item -Path 'TestDrive:\package.json' -Value ($ValidPackageJson1 -f 'invalid_module', $MockModuleVersion1) -Force
+                    New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f 'invalid_module', $MockModuleVersion1) -Force
                     Mock getModule { throw 'Some exception' } -ParameterFilter {$Name -eq 'invalid_module'}
                     { pspm install -ea Stop } | Should -Throw
 

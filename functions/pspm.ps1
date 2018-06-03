@@ -40,7 +40,7 @@ function pspm {
     #region Initialize
     $script:ModuleRoot = Split-Path -Parent $PSScriptRoot
     $script:CurrentDir = Convert-Path .
-    $script:ModuleDir = (Join-path $CurrentDir '\Modules')
+    $script:ModuleDir = (Join-path $CurrentDir '/Modules')
     $script:UserPSModulePath = Get-PSModulePath -Scope User
     $script:GlobalPSModulePath = Get-PSModulePath -Scope Global
     #endregion
@@ -96,8 +96,8 @@ function pspm {
                 Import-Module (Join-path $ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
 
                 if ($Save) {
-                    if (Test-Path (Join-path $CurrentDir '\package.json')) {
-                        $PackageJson = Get-Content -Path (Join-path $CurrentDir '\package.json') -Raw | ConvertFrom-Json
+                    if (Test-Path (Join-path $CurrentDir '/package.json')) {
+                        $PackageJson = Get-Content -Path (Join-path $CurrentDir '/package.json') -Raw | ConvertFrom-Json
                         if (-Not $PackageJson.dependencies) {
                             $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
                         }
@@ -109,7 +109,7 @@ function pspm {
                     }
 
                     $PackageJson.dependencies | Add-Member -NotePropertyName $local:targetModule.Name -NotePropertyValue ([string]$local:targetModule.ModuleVersion) -Force
-                    $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $CurrentDir '\package.json') -Force -Encoding utf8
+                    $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $CurrentDir '/package.json') -Force -Encoding utf8
                 }
             }
         }
@@ -117,10 +117,9 @@ function pspm {
             Write-Error ('{0}: {1}' -f $Name, $_.Exception.Message)
         }
     }
-    # Install from package.json
     elseif ($PSCmdlet.ParameterSetName -eq 'Install') {
-        if (Test-Path (Join-path $CurrentDir '\package.json')) {
-            $PackageJson = Get-Content -Path (Join-path $CurrentDir '\package.json') -Raw | ConvertFrom-Json
+        if (Test-Path (Join-path $CurrentDir '/package.json')) {
+            $PackageJson = Get-Content -Path (Join-path $CurrentDir '/package.json') -Raw | ConvertFrom-Json
             
             $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
                 ForEach-Object {
