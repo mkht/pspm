@@ -5,6 +5,7 @@ $functionsPath = '\functions'
 
 #region Load functions
 $FunctionList = @(
+    'Test-IsWindows.ps1'
     'Test-AdminPrivilege.ps1'
     'Format-Json.ps1'
     'Get-ModuleInfo.ps1'
