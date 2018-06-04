@@ -117,6 +117,7 @@ function pspm {
             Write-Error ('{0}: {1}' -f $Name, $_.Exception.Message)
         }
     }
+    # Install from package.json
     elseif ($PSCmdlet.ParameterSetName -eq 'Install') {
         if (Test-Path (Join-path $CurrentDir '/package.json')) {
             $PackageJson = Get-Content -Path (Join-path $CurrentDir '/package.json') -Raw | ConvertFrom-Json
