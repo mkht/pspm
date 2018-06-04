@@ -15,7 +15,7 @@ function Get-PSModulePath {
         $script:GlobalPSModulePath = Join-Path $env:ProgramFiles 'WindowsPowerShell/Modules'
     }
     else {
-        # Othrer (MacOS or Linux)
+        # Others (MacOS or Linux)
         $script:UserPSModulePath = Join-Path $env:HOME '/.local/share/powershell/Modules'
         $script:GlobalPSModulePath = '/usr/local/share/powershell/Modules'
     }
