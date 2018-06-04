@@ -25,18 +25,18 @@ try {
 
         $ValidPackageJson1 = @'
 {{
-    "dependencies": {{
-        "{0}": "{1}"
-    }}
+  "dependencies": {{
+    "{0}": "{1}"
+  }}
 }}
 '@
 
         $ValidPackageJson2 = @'
 {{
-    "dependencies": {{
-        "{0}": "{1}",
-        "{2}": "{3}"
-    }}
+  "dependencies": {{
+    "{0}": "{1}",
+    "{2}": "{3}"
+  }}
 }}
 '@
         #endregion Set variables for testing
@@ -168,18 +168,18 @@ try {
                 }
             }
 
-            Context 'pspm/pspm version'{
-                    It 'pspm version output own version'{
-                        (pspm version) -as [System.version] | Should -Be $true
-                    }
+            Context 'pspm/pspm version' {
+                It 'pspm version output own version' {
+                    (pspm version) -as [System.version] | Should -Be $true
+                }
 
-                    It 'pspm -Version output own version'{
-                        (pspm -Version) -as [System.version] | Should -Be $true
-                    }
+                It 'pspm -Version output own version' {
+                    (pspm -Version) -as [System.version] | Should -Be $true
+                }
 
-                    It 'pspm -v output own version'{
-                        (pspm -v) -as [System.version] | Should -Be $true
-                    }
+                It 'pspm -v output own version' {
+                    (pspm -v) -as [System.version] | Should -Be $true
+                }
             }
         }
     }
