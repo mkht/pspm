@@ -46,7 +46,7 @@ function pspm {
     #endregion
 
     # Get version of myself
-    if(($Command -eq 'version') -or ($PSCmdlet.ParameterSetName -eq 'Version')){
+    if (($Command -eq 'version') -or ($PSCmdlet.ParameterSetName -eq 'Version')) {
         $owmInfo = Import-PowerShellDataFile -LiteralPath (Join-Path -Path $script:ModuleRoot -ChildPath 'pspm.psd1')
         [string]($owmInfo.ModuleVersion)
         return
@@ -89,11 +89,11 @@ function pspm {
     # Install from Name
     if (($PSCmdlet.ParameterSetName -eq 'Install') -and (-not [String]::IsNullOrEmpty($Name))) {
         try {
-            $targetModule = getModule -Version $Name -Path $ModuleDir -ErrorAction Stop
+            $local:targetModule = getModule -Version $Name -Path $ModuleDir -ErrorAction Stop
 
-            if ($targetModule) {
-                Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
-                Import-Module (Join-path $ModuleDir $targetModule.Name) -Force -Global -ErrorAction Stop
+            if ($local:targetModule) {
+                Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
+                Import-Module (Join-path $ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
 
                 if ($Save) {
                     if (Test-Path (Join-path $CurrentDir '\package.json')) {
@@ -108,7 +108,7 @@ function pspm {
                         }
                     }
 
-                    $PackageJson.dependencies | Add-Member -NotePropertyName $targetModule.Name -NotePropertyValue ([string]$targetModule.ModuleVersion) -Force
+                    $PackageJson.dependencies | Add-Member -NotePropertyName $local:targetModule.Name -NotePropertyValue ([string]$local:targetModule.ModuleVersion) -Force
                     $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $CurrentDir '\package.json') -Force -Encoding utf8
                 }
             }
@@ -124,19 +124,19 @@ function pspm {
             
             $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
                 ForEach-Object {
-                $moduleName = $_.Name
-                $version = $PackageJson.dependencies.($_.Name)
+                $local:moduleName = $_.Name
+                $local:moduleVersion = $PackageJson.dependencies.($_.Name)
 
                 try {
-                    $targetModule = getModule -Name $moduleName -Version $version -Path $ModuleDir -ErrorAction Stop
+                    $local:targetModule = getModule -Name $local:moduleName -Version $local:moduleVersion -Path $ModuleDir -ErrorAction Stop
                 
-                    if ($targetModule) {
-                        Write-Host ('{0}@{1}: Importing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
-                        Import-Module (Join-path $ModuleDir $targetModule.Name) -Force -Global -ErrorAction Stop
+                    if ($local:targetModule) {
+                        Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
+                        Import-Module (Join-path $ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
                     }
                 }
                 catch {
-                    Write-Error ('{0}: {1}' -f $moduleName, $_.Exception.Message)
+                    Write-Error ('{0}: {1}' -f $local:moduleName, $_.Exception.Message)
                 }
             }
         }
