@@ -6,7 +6,7 @@ function Test-AdminPrivilege {
     )
 
     # Test Windows or Not
-    if (IsWindows) {
+    if (Test-IsWindows) {
         # Check Administrator privilege
         $local:user = 
         try {
@@ -19,8 +19,4 @@ function Test-AdminPrivilege {
         # Except Windows, always return $true
         $true
     }
-}
-
-function IsWindows {
-    [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)
 }

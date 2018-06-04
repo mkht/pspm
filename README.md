@@ -52,10 +52,10 @@ Create `package.json` like below in the current directory. Then run `pspm instal
 
 ```javascript
 {
-    "dependencies": {
-        "<Module name 1>": "<Version>",
-        "<Module name 2>": "<Version>"
-    }
+  "dependencies": {
+    "<Module name 1>": "<Version>",
+    "<Module name 2>": "<Version>"
+  }
 }
 ```
 
@@ -88,10 +88,10 @@ pspm install '<user>/<repo-name>#<ref>'
 
 ```javascript
 {
-    "dependencies": {
-        "<Module name 1>": "<user>/<repo-name>",
-        "<Module name 2>": "<user>/<repo-name>#<ref>"
-    }
+  "dependencies": {
+    "<Module name 1>": "<user>/<repo-name>",
+    "<Module name 2>": "<user>/<repo-name>#<ref>"
+  }
 }
 ```
 

@@ -18,7 +18,7 @@ try {
         Describe 'Test-AdminPrivilege' {
 
             Context 'Administrator' {
-                Mock IsWindows {$true}
+                Mock Test-IsWindows {$true}
 
                 Mock New-Object {
                     (New-Object -TypeName psobject) | Add-Member -MemberType ScriptMethod -Name IsInRole -Value {$true} -PassThru
@@ -30,7 +30,7 @@ try {
             }
 
             Context 'Not Administrator' {
-                Mock IsWindows {$true}
+                Mock Test-IsWindows {$true}
 
                 Mock New-Object {
                     (New-Object -TypeName psobject) | Add-Member -MemberType ScriptMethod -Name IsInRole -Value {$false} -PassThru
@@ -42,7 +42,7 @@ try {
             }
 
             Context 'Not Windows' {
-                Mock IsWindows {$false}
+                Mock Test-IsWindows {$false}
                 
                 It 'return $true' {
                     Test-AdminPrivilege | Should -Be $true

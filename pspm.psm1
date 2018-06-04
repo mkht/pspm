@@ -1,12 +1,14 @@
 #Requires -Version 4
 
 $modulePath = $PSScriptRoot
-$functionsPath = '\functions'
+$functionsPath = '/functions'
 
 #region Load functions
 $FunctionList = @(
+    'Test-IsWindows.ps1'
     'Test-AdminPrivilege.ps1'
     'Format-Json.ps1'
+    'Get-PSModulePath.ps1'
     'Get-ModuleInfo.ps1'
     'getModule.ps1'
     'pspm.ps1'
