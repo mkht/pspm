@@ -1,9 +1,10 @@
 function pspm {
-    [CmdletBinding(DefaultParameterSetName = 'Install')]
+    [CmdletBinding(DefaultParameterSetName = 'Default')]
     param
     (
         # Parameter help description
-        [Parameter(Position = 0)]
+        [Parameter(Mandatory = $false, ParameterSetName = 'Version')]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Default')]
         [string]
         $Command = 'version',
 
@@ -45,59 +46,121 @@ function pspm {
     $script:GlobalPSModulePath = Get-PSModulePath -Scope Global
     #endregion
 
-    # Get version of myself
+    # pspm -v
     if (($Command -eq 'version') -or ($PSCmdlet.ParameterSetName -eq 'Version')) {
-        $owmInfo = Import-PowerShellDataFile -LiteralPath (Join-Path -Path $script:ModuleRoot -ChildPath 'pspm.psd1')
-        [string]($owmInfo.ModuleVersion)
+        
+        pspm-version
+        
         return
     }
 
+    # pspm install
+    elseif ($Command -eq 'Install') {
+        [HashTable]$private:param = $PSBoundParameters
+        $private:param.Remove('Command')
+        $private:param.Remove('Version')
+
+        pspm-install @param
+
+        return
+    }
+
+    else {
+        Write-Error ('Unsupported command: {0}' -f $Command)
+    }
+}
+
+
+function pspm-version {
+    [CmdletBinding()]
+    [OutputType('string')]
+    param()
+
+    $local:ModuleRoot = $script:ModuleRoot
+        
+    # Get version of myself
+    $owmInfo = Import-PowerShellDataFile -LiteralPath (Join-Path -Path $local:ModuleRoot -ChildPath 'pspm.psd1')
+    [string]($owmInfo.ModuleVersion)
+    return
+}
+
+
+function pspm-install {
+    [CmdletBinding()]
+    param
+    (
+        [Parameter()]
+        [string]
+        $Name,
+
+        [Parameter()]
+        [ValidateSet('Global', 'CurrentUser')]
+        [string]
+        $Scope,
+
+        [Parameter()]
+        [alias('g')]
+        [switch]
+        $Global,
+
+        [Parameter()]
+        [alias('s')]
+        [switch]
+        $Save,
+
+        [Parameter()]
+        [switch]$Clean
+    )
+
+    $local:ModuleDir = $script:ModuleDir
+    $local:CurrentDir = $script:CurrentDir
+   
     #region Scope parameter
     if ($Global) {
         $Scope = 'Global'
     }
-
+    
     if ($Scope) {
         if ($Clean) {
             Write-Warning ("You can't use '-Clean' with '-Scope'")
             $Clean = $false
         }
-
+    
         if ($Scope -eq 'Global') {
             #Check for Admin Privileges (only Windows)
             if (-not (Test-AdminPrivilege)) {
                 throw [System.InvalidOperationException]::new('Administrator rights are required to install modules in "{0}"' -f $GlobalPSModulePath)
                 return
             }
-
-            $ModuleDir = $GlobalPSModulePath
+    
+            $local:ModuleDir = $script:GlobalPSModulePath
         }
         elseif ($Scope -eq 'CurrentUser') {
-            $ModuleDir = $UserPSModulePath
+            $local:ModuleDir = $script:UserPSModulePath
         }
     }
     #endregion
-
-    Write-Host ('Modules will be saved in "{0}"' -f $ModuleDir)
-    if (-Not (Test-Path $ModuleDir)) {
-        New-Item -Path $ModuleDir -ItemType Directory
+    
+    Write-Host ('Modules will be saved in "{0}"' -f $local:ModuleDir)
+    if (-Not (Test-Path $local:ModuleDir)) {
+        New-Item -Path $local:ModuleDir -ItemType Directory
     }
     elseif ($Clean) {
-        Get-ChildItem -Path $ModuleDir -Directory | Remove-Item -Recurse -Force
+        Get-ChildItem -Path $local:ModuleDir -Directory | Remove-Item -Recurse -Force
     }
-
+    
     # Install from Name
-    if (($PSCmdlet.ParameterSetName -eq 'Install') -and (-not [String]::IsNullOrEmpty($Name))) {
+    if (-not [String]::IsNullOrEmpty($Name)) {
         try {
-            $local:targetModule = getModule -Version $Name -Path $ModuleDir -ErrorAction Stop
-
+            $local:targetModule = getModule -Version $Name -Path $local:ModuleDir -ErrorAction Stop
+    
             if ($local:targetModule) {
                 Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
-                Import-Module (Join-path $ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
-
+                Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
+    
                 if ($Save) {
-                    if (Test-Path (Join-path $CurrentDir '/package.json')) {
-                        $PackageJson = Get-Content -Path (Join-path $CurrentDir '/package.json') -Raw | ConvertFrom-Json
+                    if (Test-Path (Join-path $local:CurrentDir '/package.json')) {
+                        $PackageJson = Get-Content -Path (Join-path $local:CurrentDir '/package.json') -Raw | ConvertFrom-Json
                         if (-Not $PackageJson.dependencies) {
                             $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
                         }
@@ -107,9 +170,9 @@ function pspm {
                             dependencies = [PSCustomObject]@{}
                         }
                     }
-
+    
                     $PackageJson.dependencies | Add-Member -NotePropertyName $local:targetModule.Name -NotePropertyValue ([string]$local:targetModule.ModuleVersion) -Force
-                    $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $CurrentDir '/package.json') -Force -Encoding utf8
+                    $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $local:CurrentDir '/package.json') -Force -Encoding utf8
                 }
             }
         }
@@ -118,32 +181,29 @@ function pspm {
         }
     }
     # Install from package.json
-    elseif ($PSCmdlet.ParameterSetName -eq 'Install') {
-        if (Test-Path (Join-path $CurrentDir '/package.json')) {
-            $PackageJson = Get-Content -Path (Join-path $CurrentDir '/package.json') -Raw | ConvertFrom-Json
-            
-            $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
-                ForEach-Object {
-                $local:moduleName = $_.Name
-                $local:moduleVersion = $PackageJson.dependencies.($_.Name)
-
-                try {
-                    $local:targetModule = getModule -Name $local:moduleName -Version $local:moduleVersion -Path $ModuleDir -ErrorAction Stop
+    elseif (Test-Path (Join-path $local:CurrentDir '/package.json')) {
+        $PackageJson = Get-Content -Path (Join-path $local:CurrentDir '/package.json') -Raw | ConvertFrom-Json
                 
-                    if ($local:targetModule) {
-                        Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
-                        Import-Module (Join-path $ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
-                    }
-                }
-                catch {
-                    Write-Error ('{0}: {1}' -f $local:moduleName, $_.Exception.Message)
+        $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
+            ForEach-Object {
+            $local:moduleName = $_.Name
+            $local:moduleVersion = $PackageJson.dependencies.($_.Name)
+    
+            try {
+                $local:targetModule = getModule -Name $local:moduleName -Version $local:moduleVersion -Path $local:ModuleDir -ErrorAction Stop
+                    
+                if ($local:targetModule) {
+                    Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
+                    Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
                 }
             }
-        }
-        else {
-            Write-Error ('Cloud not find package.json in the current directory')
-            return
+            catch {
+                Write-Error ('{0}: {1}' -f $local:moduleName, $_.Exception.Message)
+            }
         }
     }
+    else {
+        Write-Error ('Cloud not find package.json in the current directory')
+        return
+    }
 }
-

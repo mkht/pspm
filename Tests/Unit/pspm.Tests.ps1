@@ -181,6 +181,12 @@ try {
                     (pspm -v) -as [System.version] | Should -Be $true
                 }
             }
+
+            Context 'pspm unsupported command' {
+                It 'Write-Error if specified unsupported command' {
+                    { pspm -Command 'unsupported' -ErrorAction Stop } | Should -Throw ('Unsupported command: {0}' -f 'unsupported')
+                }
+            }
         }
     }
 }
