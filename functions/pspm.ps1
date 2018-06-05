@@ -5,6 +5,8 @@ function pspm {
         # Parameter help description
         [Parameter(Mandatory = $false, ParameterSetName = 'Version')]
         [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Default')]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Install')]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Run')]
         [string]
         $Command = 'version',
 
@@ -31,6 +33,14 @@ function pspm {
 
         [Parameter()]
         [switch]$Clean,
+
+        [Parameter(ParameterSetName = 'Run')]
+        [string[]]
+        $Arguments,
+
+        [Parameter(ParameterSetName = 'Run')]
+        [switch]
+        $IfPresent,
 
         [Parameter(ParameterSetName = 'Version')]
         [alias('v')]
@@ -61,6 +71,20 @@ function pspm {
         $private:param.Remove('Version')
 
         pspm-install @param
+
+        return
+    }
+
+    # pspm run
+    elseif (($Command -eq 'run') -or ($Command -eq 'run-script')) {
+        [HashTable]$private:param = @{
+            Command   = $Command
+            Name      = $Name
+            Arguments = $Arguments
+            IfPresent = $IfPresent
+        }
+
+        pspm-run @param
 
         return
     }
@@ -199,6 +223,55 @@ function pspm-install {
             }
             catch {
                 Write-Error ('{0}: {1}' -f $local:moduleName, $_.Exception.Message)
+            }
+        }
+    }
+    else {
+        Write-Error ('Cloud not find package.json in the current directory')
+        return
+    }
+}
+
+
+function pspm-run {
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory)]
+        [string]
+        $Command,
+
+        [Parameter()]
+        [string]
+        $Name,
+
+        [Parameter()]
+        [string[]]
+        $Arguments,
+
+        [Parameter()]
+        [switch]
+        $IfPresent
+    )
+
+    $local:ModuleDir = $script:ModuleDir
+    $local:CurrentDir = $script:CurrentDir
+
+    if (Test-Path (Join-path $local:CurrentDir '/package.json')) {
+        $PackageJson = Get-Content -Path (Join-path $local:CurrentDir '/package.json') -Raw | ConvertFrom-Json
+                
+        if ($PackageJson.scripts | Get-Member -MemberType NoteProperty | Where-Object {$_.Name -eq $Name}) {
+            try {
+                $local:ScriptBlock = [scriptblock]::Create($PackageJson.scripts.($Name))
+                $local:ScriptBlock.Invoke($Arguments)
+            }
+            finally {
+                Set-Location -Path $local:CurrentDir
+            }
+        }
+        else {
+            if (-not $IfPresent) {
+                Write-Error ('The script "{0}" is not defined in package.json' -f $Name)
             }
         }
     }
