@@ -156,7 +156,7 @@ try {
                 It 'Write-Error when package.json not exist' {
                     Remove-Item -Path 'TestDrive:/package.json' -Force -ErrorAction SilentlyContinue
                     
-                    { pspm install -ea Stop } | Should -Throw 'Cloud not find package.json in the current directory'
+                    { pspm install -ea Stop } | Should -Throw 'Could not find package.json in the current directory'
                 }
 
                 It 'Write-Error when an exception occurred' {

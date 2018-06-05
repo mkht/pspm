@@ -227,7 +227,7 @@ function pspm-install {
         }
     }
     else {
-        Write-Error ('Cloud not find package.json in the current directory')
+        Write-Error ('Could not find package.json in the current directory')
         return
     }
 }
@@ -276,7 +276,7 @@ function pspm-run {
         }
     }
     else {
-        Write-Error ('Cloud not find package.json in the current directory')
+        Write-Error ('Could not find package.json in the current directory')
         return
     }
 }
