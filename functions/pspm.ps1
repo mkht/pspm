@@ -54,7 +54,7 @@ function pspm {
     $script:ModuleDir = (Join-path $CurrentDir '/Modules')
     $script:UserPSModulePath = Get-PSModulePath -Scope User
     $script:GlobalPSModulePath = Get-PSModulePath -Scope Global
-    #endregion
+    #endregion Initialize
 
     # Load package.json in the current directory
     $local:PackageJson = Get-PackageJson -ErrorAction SilentlyContinue
@@ -81,9 +81,9 @@ function pspm {
     # pspm run
     elseif (($Command -eq 'run') -or ($Command -eq 'run-script')) {
         [HashTable]$private:param = @{
-            CommandName      = $Name
-            Arguments = $Arguments
-            IfPresent = $IfPresent
+            CommandName = $Name
+            Arguments   = $Arguments
+            IfPresent   = $IfPresent
         }
 
         pspm-run @param
@@ -94,9 +94,9 @@ function pspm {
     # pspm run (preserved name)
     elseif (('start', ' restart', 'stop', 'test') -eq $Command) {
         [HashTable]$private:param = @{
-            CommandName      = $Command
-            Arguments = $Arguments
-            IfPresent = $IfPresent
+            CommandName = $Command
+            Arguments   = $Arguments
+            IfPresent   = $IfPresent
         }
 
         pspm-run @param
