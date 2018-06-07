@@ -302,7 +302,9 @@ function pspm-run {
         }
     }
     else {
+        if (-not $IfPresent) {
         Write-Error ('Could not find package.json in the current directory')
         return
     }
+}
 }
