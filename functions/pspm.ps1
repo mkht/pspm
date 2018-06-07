@@ -56,6 +56,9 @@ function pspm {
     $script:GlobalPSModulePath = Get-PSModulePath -Scope Global
     #endregion
 
+    # Load package.json in the current directory
+    $local:PackageJson = Get-PackageJson -ErrorAction SilentlyContinue
+
     # pspm -v
     if (($Command -eq 'version') -or ($PSCmdlet.ParameterSetName -eq 'Version')) {
         
@@ -195,8 +198,7 @@ function pspm-install {
                 Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
     
                 if ($Save) {
-                    if (Test-Path (Join-path $local:CurrentDir '/package.json')) {
-                        $PackageJson = Get-Content -Path (Join-path $local:CurrentDir '/package.json') -Raw | ConvertFrom-Json
+                    if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
                         if (-Not $PackageJson.dependencies) {
                             $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
                         }
@@ -217,9 +219,7 @@ function pspm-install {
         }
     }
     # Install from package.json
-    elseif (Test-Path (Join-path $local:CurrentDir '/package.json')) {
-        $PackageJson = Get-Content -Path (Join-path $local:CurrentDir '/package.json') -Raw | ConvertFrom-Json
-                
+    elseif ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
         $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
             ForEach-Object {
             $local:moduleName = $_.Name
@@ -265,9 +265,7 @@ function pspm-run {
     $local:ModuleDir = $script:ModuleDir
     $local:CurrentDir = $script:CurrentDir
 
-    if (Test-Path (Join-path $local:CurrentDir '/package.json')) {
-        $PackageJson = Get-Content -Path (Join-path $local:CurrentDir '/package.json') -Raw | ConvertFrom-Json
-                
+    if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
         if ($PackageJson.scripts | Get-Member -MemberType NoteProperty | Where-Object {$_.Name -eq $CommandName}) {
             try {
                 $local:ScriptBlock = [scriptblock]::Create($PackageJson.scripts.($CommandName))
