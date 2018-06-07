@@ -240,7 +240,7 @@ function pspm-install {
     }
     # Install from package.json
     elseif ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
-        $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
+        $PackageJson.dependencies | Get-Member -MemberType NoteProperty -ErrorAction SilentlyContinue | `
             ForEach-Object {
             $local:moduleName = $_.Name
             $local:moduleVersion = $PackageJson.dependencies.($_.Name)
@@ -286,7 +286,7 @@ function pspm-run {
     $local:CurrentDir = $script:CurrentDir
 
     if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
-        if ($PackageJson.scripts | Get-Member -MemberType NoteProperty | Where-Object {$_.Name -eq $CommandName}) {
+        if ($PackageJson.scripts | Get-Member -MemberType NoteProperty -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $CommandName}) {
             try {
                 $local:ScriptBlock = [scriptblock]::Create($PackageJson.scripts.($CommandName))
                 $local:ScriptBlock.Invoke($Arguments)
@@ -303,8 +303,8 @@ function pspm-run {
     }
     else {
         if (-not $IfPresent) {
-        Write-Error ('Could not find package.json in the current directory')
-        return
+            Write-Error ('Could not find package.json in the current directory')
+            return
+        }
     }
-}
 }
