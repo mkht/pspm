@@ -78,8 +78,20 @@ function pspm {
     # pspm run
     elseif (($Command -eq 'run') -or ($Command -eq 'run-script')) {
         [HashTable]$private:param = @{
-            Command   = $Command
-            Name      = $Name
+            CommandName      = $Name
+            Arguments = $Arguments
+            IfPresent = $IfPresent
+        }
+
+        pspm-run @param
+
+        return
+    }
+
+    # pspm run (preserved name)
+    elseif (('start', ' restart', 'stop', 'test') -eq $Command) {
+        [HashTable]$private:param = @{
+            CommandName      = $Command
             Arguments = $Arguments
             IfPresent = $IfPresent
         }
@@ -239,11 +251,7 @@ function pspm-run {
     (
         [Parameter(Mandatory)]
         [string]
-        $Command,
-
-        [Parameter()]
-        [string]
-        $Name,
+        $CommandName,
 
         [Parameter()]
         [string[]]
@@ -260,9 +268,9 @@ function pspm-run {
     if (Test-Path (Join-path $local:CurrentDir '/package.json')) {
         $PackageJson = Get-Content -Path (Join-path $local:CurrentDir '/package.json') -Raw | ConvertFrom-Json
                 
-        if ($PackageJson.scripts | Get-Member -MemberType NoteProperty | Where-Object {$_.Name -eq $Name}) {
+        if ($PackageJson.scripts | Get-Member -MemberType NoteProperty | Where-Object {$_.Name -eq $CommandName}) {
             try {
-                $local:ScriptBlock = [scriptblock]::Create($PackageJson.scripts.($Name))
+                $local:ScriptBlock = [scriptblock]::Create($PackageJson.scripts.($CommandName))
                 $local:ScriptBlock.Invoke($Arguments)
             }
             finally {
@@ -271,7 +279,7 @@ function pspm-run {
         }
         else {
             if (-not $IfPresent) {
-                Write-Error ('The script "{0}" is not defined in package.json' -f $Name)
+                Write-Error ('The script "{0}" is not defined in package.json' -f $CommandName)
             }
         }
     }
