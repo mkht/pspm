@@ -7,7 +7,7 @@ function Get-PackageJson {
     )
 
     if (-not $FilePath) {
-        $FilePath = (Join-path $PWD.Path '/package.json')
+        $FilePath = (Join-path $PWD.Path 'package.json')
     }
 
     if (Test-Path $FilePath) {
