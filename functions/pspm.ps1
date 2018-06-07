@@ -70,7 +70,17 @@ function pspm {
         $private:param.Remove('Command')
         $private:param.Remove('Version')
 
+        # run preinstall script
+        pspm-run -CommandName 'preinstall' -IfPresent
+
+        # main
         pspm-install @param
+        
+        # run install script
+        pspm-run -CommandName 'install' -IfPresent
+        
+        # run postinstall script
+        pspm-run -CommandName 'postinstall' -IfPresent
 
         return
     }
@@ -83,7 +93,14 @@ function pspm {
             IfPresent   = $IfPresent
         }
 
+        # run pre script
+        pspm-run -CommandName ('pre' + $Name) -IfPresent
+
+        # run main script
         pspm-run @param
+
+        # run post script
+        pspm-run -CommandName ('post' + $Name) -IfPresent
 
         return
     }
@@ -95,8 +112,14 @@ function pspm {
             Arguments   = $Arguments
             IfPresent   = $IfPresent
         }
+        # run pre script
+        pspm-run -CommandName ('pre' + $Name) -IfPresent
 
+        # run main script
         pspm-run @param
+
+        # run post script
+        pspm-run -CommandName ('post' + $Name) -IfPresent
 
         return
     }
