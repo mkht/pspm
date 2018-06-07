@@ -56,9 +56,6 @@ function pspm {
     $script:GlobalPSModulePath = Get-PSModulePath -Scope Global
     #endregion Initialize
 
-    # Load package.json in the current directory
-    $local:PackageJson = Get-PackageJson -ErrorAction SilentlyContinue
-
     # pspm -v
     if (($Command -eq 'version') -or ($PSCmdlet.ParameterSetName -eq 'Version')) {
         
