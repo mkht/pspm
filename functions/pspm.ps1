@@ -2,7 +2,7 @@ function pspm {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
     param
     (
-        # Parameter help description
+        # Command name (version / install / run)
         [Parameter(Mandatory = $false, ParameterSetName = 'Version')]
         [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Default')]
         [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Install')]
@@ -10,7 +10,7 @@ function pspm {
         [string]
         $Command = 'version',
 
-        # Parameter help description
+        # Name of Package (install) or Name of script (run)
         [Parameter(position = 1)]
         [ValidateNotNullOrEmpty()]
         [string]
