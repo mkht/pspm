@@ -53,15 +53,18 @@ try {
 
         $HookScriptJsonObj1 = [PSCustomObject]@{
             scripts = [PSCustomObject]@{
-                prestart    = 'echo "prestart"'
-                start       = 'echo "start"'
-                poststart   = 'echo "poststart"'
-                preinstall  = 'echo "preinstall"'
-                install     = 'echo "install"'
-                postinstall = 'echo "postinstall"'
-                prehello    = 'echo "prehello"'
-                hello       = 'echo "hello"'
-                posthello   = 'echo "posthello"'
+                prestart      = 'echo "prestart"'
+                start         = 'echo "start"'
+                poststart     = 'echo "poststart"'
+                preinstall    = 'echo "preinstall"'
+                install       = 'echo "install"'
+                postinstall   = 'echo "postinstall"'
+                preuninstall  = 'echo "preuninstall"'
+                uninstall     = 'echo "uninstall"'
+                postuninstall = 'echo "postuninstall"'
+                prehello      = 'echo "prehello"'
+                hello         = 'echo "hello"'
+                posthello     = 'echo "posthello"'
             }
         }
         #endregion Set variables for testing
@@ -193,7 +196,64 @@ try {
                 }
             }
 
-            Context 'pspm/pspm version' {
+            Context 'pspm uninstall' {
+                Mock Get-ModuleInfo {
+                    @{
+                        Name          = $MockModuleName1
+                        ModuleVersion = [System.Version]::Parse($MockModuleVersion1)
+                    }
+                }
+
+                Mock Remove-Module {}
+
+                It 'Uninstall module' {
+                    # Create dummy file
+                    New-Item -Path ('TestDrive:/Modules/{0}/{0}.psd1' -f $MockModuleName1) -ItemType File -Force >$null
+
+                    {pspm uninstall $MockModuleName1} | Should -Not -Throw
+                    ('TestDrive:/Modules/{0}' -f $MockModuleName1) | Should -Not -Exist 
+                }
+
+                It 'If target module not exist, should output warning' {
+                    $local:WarningPreference = 'Stop'
+                    $warnmsg = ('Module "{0}" not found in "{1}"' -f 'notexist', (Join-Path $TestDrive 'Modules'))
+
+                    {pspm uninstall 'notexist' 3>$null} | Should -Throw $warnmsg
+                }
+
+                Context 'pspm uninstall -Save' {
+                    It 'Remove module info in package.json' {
+                        $local:WarningPreference = 'SilentlyContinue'
+                        New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1) -Force
+                        
+                        { pspm uninstall $MockModuleName1 -Save } | Should -Not -Throw
+
+                        'TestDrive:/package.json' | Should -Exist
+                        $json = Get-Content 'TestDrive:/package.json' -Raw | ConvertFrom-Json
+                        $json.dependencies.($MockModuleName1) | Should -Be $null
+                    }
+
+                    It 'If module entry not exist in package.json, should output warning' {
+                        $local:WarningPreference = 'Stop'
+                        # Create dummy file
+                        New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f $MockModuleName2, $MockModuleVersion2) -Force
+                        New-Item -Path ('TestDrive:/Modules/{0}/{0}.psd1' -f $MockModuleName1) -ItemType File -Force >$null
+                        $warnmsg = ('Entry "{0}" not found in package.json dependencies' -f $MockModuleName1)
+                        
+                        { pspm uninstall $MockModuleName1 -Save 3>$null } | Should -Throw  $warnmsg
+                    }
+
+                    It 'If package.json not exist, should output warning' {
+                        $local:WarningPreference = 'Stop'
+                        New-Item -Path ('TestDrive:/Modules/{0}/{0}.psd1' -f $MockModuleName1) -ItemType File -Force >$null
+                        $warnmsg = 'Could not find package.json or dependencies entry'
+                        
+                        { pspm uninstall $MockModuleName1 -Save 3>$null } | Should -Throw  $warnmsg
+                    }
+                }
+            }
+
+            Context 'pspm version' {
                 It 'pspm version output own version' {
                     (pspm version) -as [System.version] | Should -Be $true
                 }
@@ -291,13 +351,27 @@ try {
                 }
 
                 It 'pspm install hooking' {
-                    Mock pspm-install {}
+                    Mock pspm-install {'invoke'}
 
                     $ret = @(pspm install)
-                    $ret | Should -HaveCount 3
+                    $ret | Should -HaveCount 4
                     $ret[0] | Should -Be 'preinstall'
-                    $ret[1] | Should -Be 'install'
-                    $ret[2] | Should -Be 'postinstall'
+                    $ret[1] | Should -Be 'invoke'
+                    # install script should run after pspm-install
+                    $ret[2] | Should -Be 'install'
+                    $ret[3] | Should -Be 'postinstall'
+                }
+
+                It 'pspm uninstall hooking' {
+                    Mock pspm-uninstall {'invoke'}
+
+                    $ret = @(pspm uninstall 'mock')
+                    $ret | Should -HaveCount 4
+                    $ret[0] | Should -Be 'preuninstall'
+                    # uninstall script should run before pspm-uninstall
+                    $ret[1] | Should -Be 'uninstall'
+                    $ret[2] | Should -Be 'invoke'
+                    $ret[3] | Should -Be 'postuninstall'
                 }
             }
 

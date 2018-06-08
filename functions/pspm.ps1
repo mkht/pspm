@@ -88,6 +88,30 @@ function pspm {
         return
     }
 
+    # pspm uninstall
+    elseif ($Command -eq 'uninstall') {
+        [HashTable]$private:param = @{
+            Name = $Name
+        }
+        if ($Scope) {$private:param.Add('Scope', $Scope)}
+        if ($Global) {$private:param.Add('Global', $Global)}
+        if ($Save) {$private:param.Add('Save', $Save)}
+
+        # run preuninstall script
+        pspm-run -CommandName 'preuninstall' -IfPresent
+        
+        # run uninstall script
+        pspm-run -CommandName 'uninstall' -IfPresent
+
+        # main
+        pspm-uninstall @param
+
+        # run postuninstall script
+        pspm-run -CommandName 'postuninstall' -IfPresent
+
+        return
+    }
+
     # pspm run
     elseif (($Command -eq 'run') -or ($Command -eq 'run-script')) {
         [HashTable]$private:param = @{
@@ -265,6 +289,96 @@ function pspm-install {
         Write-Error ('Could not find package.json in the current directory')
         return
     }
+}
+
+
+function pspm-uninstall {
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory)]
+        [string[]]
+        $Name,
+
+        [Parameter()]
+        [ValidateSet('Global', 'CurrentUser')]
+        [string]
+        $Scope,
+
+        [Parameter()]
+        [alias('g')]
+        [switch]
+        $Global,
+
+        [Parameter()]
+        [alias('s')]
+        [switch]
+        $Save
+    )
+
+    $local:ModuleDir = $script:ModuleDir
+    $local:CurrentDir = $script:CurrentDir
+   
+    #region Scope parameter
+    if ($Global) {
+        $Scope = 'Global'
+    }
+    
+    if ($Scope) {
+        if ($Scope -eq 'Global') {
+            #Check for Admin Privileges (only Windows)
+            if (-not (Test-AdminPrivilege)) {
+                throw [System.InvalidOperationException]::new('Administrator rights are required to uninstall modules in "{0}"' -f $GlobalPSModulePath)
+                return
+            }
+    
+            $local:ModuleDir = $script:GlobalPSModulePath
+        }
+        elseif ($Scope -eq 'CurrentUser') {
+            $local:ModuleDir = $script:UserPSModulePath
+        }
+    }
+    #endregion
+    
+    Write-Host ('Modules will be removed from "{0}"' -f $local:ModuleDir)
+    
+    # Uninstall from Name
+    $AllModules = Get-ChildItem -Path $local:ModuleDir -Directory -ErrorAction SilentlyContinue
+    $AllModuleInfos = $AllModules | ForEach-Object {Get-ModuleInfo -Path $_.Fullname -ErrorAction SilentlyContinue}
+
+    @($Name).ForEach(
+        {
+            $targetName = $_.Split("@")[0]
+            # $targetVersion = $_.Split("@")[1]
+
+            if ($targetModule = ($AllModuleInfos | Where-Object {$targetName -eq $_.Name})) {
+                Write-Host ('{0}@{1}: Removing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
+
+                Remove-Module -Name $targetModule -Force -ErrorAction SilentlyContinue
+                $AllModules | Where-Object {$_.Name -eq $targetModule.Name} | Remove-Item -Recurse -Force
+            }
+            else {
+                # Which is better, error or warning ?
+                Write-Warning ('Module "{0}" not found in "{1}"' -f $targetName, $local:ModuleDir)
+            }
+
+            if ($Save) {
+                $PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)
+                if ($PackageJson -and $PackageJson.dependencies) {
+                    if ($PackageJson.dependencies | gm -Type NoteProperty -Name $targetName) {
+                        $PackageJson.dependencies.PSObject.Members.Remove($targetName)
+                        $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $local:CurrentDir 'package.json') -Force -Encoding utf8
+                    }
+                    else {
+                        Write-Warning ('Entry "{0}" not found in package.json dependencies' -f $targetName)
+                    }
+                }
+                else {
+                    Write-Warning ('Could not find package.json or dependencies entry')
+                }
+            }
+        }
+    )
 }
 
 
