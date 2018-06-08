@@ -19,7 +19,7 @@ steps:
   inputs:
     scriptType: inlineScript
     inlineScript: |
-     Install-Module -Name Pester -Repository PSGallery -MinimumVersion 4.1.1 -SkipPublisherCheck -Force -Scope CurrentUser
+     Install-Module -Name Pester -Repository PSGallery -MinimumVersion 4.2.0 -SkipPublisherCheck -Force -Scope CurrentUser
      
 #---------------------------------# 
 #      test configuration         # 
