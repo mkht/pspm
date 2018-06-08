@@ -5,10 +5,9 @@ function pspm {
         # Command name (version / install / run)
         [Parameter(Mandatory = $false, ParameterSetName = 'Version')]
         [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Default')]
-        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Install')]
         [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Run')]
         [string]
-        $Command = 'version',
+        $Command,
 
         # Name of Package (install) or Name of script (run)
         [Parameter(position = 1)]
@@ -48,13 +47,13 @@ function pspm {
         $Version
     )
 
-    #region Initialize
+    #region Variable Initialize
     $script:ModuleRoot = Split-Path -Parent $PSScriptRoot
     $script:CurrentDir = Convert-Path .
     $script:ModuleDir = (Join-path $CurrentDir '/Modules')
     $script:UserPSModulePath = Get-PSModulePath -Scope User
     $script:GlobalPSModulePath = Get-PSModulePath -Scope Global
-    #endregion Initialize
+    #endregion Variable Initialize
 
     # pspm -v
     if (($Command -eq 'version') -or ($PSCmdlet.ParameterSetName -eq 'Version')) {
@@ -66,9 +65,13 @@ function pspm {
 
     # pspm install
     elseif ($Command -eq 'Install') {
-        [HashTable]$private:param = $PSBoundParameters
-        $private:param.Remove('Command')
-        $private:param.Remove('Version')
+        [HashTable]$private:param = @{
+            Name = $Name
+        }
+        if ($Scope) {$private:param.Add('Scope', $Scope)}
+        if ($Global) {$private:param.Add('Global', $Global)}
+        if ($Save) {$private:param.Add('Save', $Save)}
+        if ($Clean) {$private:param.Add('Clean', $Clean)}
 
         # run preinstall script
         pspm-run -CommandName 'preinstall' -IfPresent
