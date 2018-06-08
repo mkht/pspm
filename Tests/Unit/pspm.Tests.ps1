@@ -39,6 +39,31 @@ try {
   }}
 }}
 '@
+
+        $ScriptJsonObj1 = [PSCustomObject]@{
+            scripts = [PSCustomObject]@{
+                start   = 'echo "start"'
+                restart = 'echo "restart"'
+                stop    = 'echo "stop"'
+                test    = 'echo "test"'
+                hello   = 'echo "hello"'
+                args    = 'echo $args[0]'
+            }
+        }
+
+        $HookScriptJsonObj1 = [PSCustomObject]@{
+            scripts = [PSCustomObject]@{
+                prestart    = 'echo "prestart"'
+                start       = 'echo "start"'
+                poststart   = 'echo "poststart"'
+                preinstall  = 'echo "preinstall"'
+                install     = 'echo "install"'
+                postinstall = 'echo "postinstall"'
+                prehello    = 'echo "prehello"'
+                hello       = 'echo "hello"'
+                posthello   = 'echo "posthello"'
+            }
+        }
         #endregion Set variables for testing
 
         Describe 'pspm/pspm' {
@@ -179,6 +204,100 @@ try {
 
                 It 'pspm -v output own version' {
                     (pspm -v) -as [System.version] | Should -Be $true
+                }
+            }
+
+            Context 'pspm run-script' {
+                Mock Get-PackageJson {$ScriptJsonObj1}
+                
+                It 'pspm run <command> invoke user defined script' {
+                    pspm run hello | Should -Be 'hello'
+                }
+
+                It 'pspm run-script <command> invoke user defined script' {
+                    pspm run-script hello | Should -Be 'hello'
+                }
+
+                It 'pspm run <command> with arguments' {
+                    pspm run args -Arguments 'arg1' | Should -Be 'arg1'
+                }
+
+                It 'pspm run <command> -IfPresent (exist)' {
+                    pspm run hello -IfPresent | Should -Be 'hello'
+                }
+
+                It 'pspm run <command> -IfPresent (not exist)' {
+                    pspm run notexist -IfPresent | Should -Be $null
+                }
+
+                It 'pspm run <Non Existence Command> should throw error' {
+                    $local:ErrorActionPreference = 'Stop'
+
+                    { pspm run notexist } | Should -Throw
+                }
+
+                It 'If package.json not exist, should throw error' {
+                    Mock Get-PackageJson {}
+                    $local:ErrorActionPreference = 'Stop'
+
+                    { pspm run hello } | Should -Throw
+                }
+
+                It 'If package.json not exist with -IfPresent, should not throw error' {
+                    Mock Get-PackageJson {}
+                    $local:ErrorActionPreference = 'Stop'
+
+                    { pspm run hello -IfPresent } | Should -Not -Throw
+                }
+            }
+
+            Context 'pspm run-script (preserved words)' {
+                Mock Get-PackageJson {$ScriptJsonObj1}
+                
+                It 'pspm start' {
+                    pspm start | Should -Be 'start'
+                }
+
+                It 'pspm restart' {
+                    pspm restart | Should -Be 'restart'
+                }
+
+                It 'pspm stop' {
+                    pspm stop | Should -Be 'stop'
+                }
+
+                It 'pspm test' {
+                    pspm test | Should -Be 'test'
+                }
+            }
+
+            Context 'pspm pre / post hook scripting' {
+                Mock Get-PackageJson {$HookScriptJsonObj1}
+                
+                It 'user defined script hooking' {
+                    $ret = @(pspm run hello)
+                    $ret | Should -HaveCount 3
+                    $ret[0] | Should -Be 'prehello'
+                    $ret[1] | Should -Be 'hello'
+                    $ret[2] | Should -Be 'posthello'
+                }
+
+                It 'preserved script hooking' {
+                    $ret = @(pspm start)
+                    $ret | Should -HaveCount 3
+                    $ret[0] | Should -Be 'prestart'
+                    $ret[1] | Should -Be 'start'
+                    $ret[2] | Should -Be 'poststart'
+                }
+
+                It 'pspm install hooking' {
+                    Mock pspm-install {}
+
+                    $ret = @(pspm install)
+                    $ret | Should -HaveCount 3
+                    $ret[0] | Should -Be 'preinstall'
+                    $ret[1] | Should -Be 'install'
+                    $ret[2] | Should -Be 'postinstall'
                 }
             }
 
