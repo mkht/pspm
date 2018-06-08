@@ -2,7 +2,7 @@ function Get-ModuleInfo {
     [CmdletBinding()]
     param
     (
-        # Parameter help description
+        # The path of module folder
         [Parameter(Mandatory, ValueFromPipeline)]
         [string]
         $Path
@@ -20,7 +20,7 @@ function Get-ModuleInfo {
             $moduleInfo
         }
         else {
-            Write-Error 'Module manifest not found!'
+            Write-Error ('Module manifest not found in "{0}"' -f $Path)
             return
         }
     }
