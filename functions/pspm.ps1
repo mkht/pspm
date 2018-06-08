@@ -5,6 +5,8 @@ function pspm {
         # Parameter help description
         [Parameter(Mandatory = $false, ParameterSetName = 'Version')]
         [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Default')]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Install')]
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Run')]
         [string]
         $Command = 'version',
 
@@ -32,6 +34,14 @@ function pspm {
         [Parameter()]
         [switch]$Clean,
 
+        [Parameter(ParameterSetName = 'Run')]
+        [string[]]
+        $Arguments,
+
+        [Parameter(ParameterSetName = 'Run')]
+        [switch]
+        $IfPresent,
+
         [Parameter(ParameterSetName = 'Version')]
         [alias('v')]
         [switch]
@@ -44,7 +54,7 @@ function pspm {
     $script:ModuleDir = (Join-path $CurrentDir '/Modules')
     $script:UserPSModulePath = Get-PSModulePath -Scope User
     $script:GlobalPSModulePath = Get-PSModulePath -Scope Global
-    #endregion
+    #endregion Initialize
 
     # pspm -v
     if (($Command -eq 'version') -or ($PSCmdlet.ParameterSetName -eq 'Version')) {
@@ -60,7 +70,56 @@ function pspm {
         $private:param.Remove('Command')
         $private:param.Remove('Version')
 
+        # run preinstall script
+        pspm-run -CommandName 'preinstall' -IfPresent
+
+        # main
         pspm-install @param
+        
+        # run install script
+        pspm-run -CommandName 'install' -IfPresent
+        
+        # run postinstall script
+        pspm-run -CommandName 'postinstall' -IfPresent
+
+        return
+    }
+
+    # pspm run
+    elseif (($Command -eq 'run') -or ($Command -eq 'run-script')) {
+        [HashTable]$private:param = @{
+            CommandName = $Name
+            Arguments   = $Arguments
+            IfPresent   = $IfPresent
+        }
+
+        # run pre script
+        pspm-run -CommandName ('pre' + $Name) -IfPresent
+
+        # run main script
+        pspm-run @param
+
+        # run post script
+        pspm-run -CommandName ('post' + $Name) -IfPresent
+
+        return
+    }
+
+    # pspm run (preserved name)
+    elseif (('start', 'restart', 'stop', 'test') -eq $Command) {
+        [HashTable]$private:param = @{
+            CommandName = $Command
+            Arguments   = $Arguments
+            IfPresent   = $IfPresent
+        }
+        # run pre script
+        pspm-run -CommandName ('pre' + $Command) -IfPresent
+
+        # run main script
+        pspm-run @param
+
+        # run post script
+        pspm-run -CommandName ('post' + $Command) -IfPresent
 
         return
     }
@@ -159,8 +218,7 @@ function pspm-install {
                 Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
     
                 if ($Save) {
-                    if (Test-Path (Join-path $local:CurrentDir '/package.json')) {
-                        $PackageJson = Get-Content -Path (Join-path $local:CurrentDir '/package.json') -Raw | ConvertFrom-Json
+                    if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
                         if (-Not $PackageJson.dependencies) {
                             $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
                         }
@@ -181,10 +239,8 @@ function pspm-install {
         }
     }
     # Install from package.json
-    elseif (Test-Path (Join-path $local:CurrentDir '/package.json')) {
-        $PackageJson = Get-Content -Path (Join-path $local:CurrentDir '/package.json') -Raw | ConvertFrom-Json
-                
-        $PackageJson.dependencies | Get-Member -MemberType NoteProperty | `
+    elseif ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
+        $PackageJson.dependencies | Get-Member -MemberType NoteProperty -ErrorAction SilentlyContinue | `
             ForEach-Object {
             $local:moduleName = $_.Name
             $local:moduleVersion = $PackageJson.dependencies.($_.Name)
@@ -203,7 +259,52 @@ function pspm-install {
         }
     }
     else {
-        Write-Error ('Cloud not find package.json in the current directory')
+        Write-Error ('Could not find package.json in the current directory')
         return
+    }
+}
+
+
+function pspm-run {
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory)]
+        [string]
+        $CommandName,
+
+        [Parameter()]
+        [string[]]
+        $Arguments,
+
+        [Parameter()]
+        [switch]
+        $IfPresent
+    )
+
+    $local:ModuleDir = $script:ModuleDir
+    $local:CurrentDir = $script:CurrentDir
+
+    if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
+        if ($PackageJson.scripts | Get-Member -MemberType NoteProperty -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $CommandName}) {
+            try {
+                $local:ScriptBlock = [scriptblock]::Create($PackageJson.scripts.($CommandName))
+                $local:ScriptBlock.Invoke($Arguments)
+            }
+            finally {
+                Set-Location -Path $local:CurrentDir
+            }
+        }
+        else {
+            if (-not $IfPresent) {
+                Write-Error ('The script "{0}" is not defined in package.json' -f $CommandName)
+            }
+        }
+    }
+    else {
+        if (-not $IfPresent) {
+            Write-Error ('Could not find package.json in the current directory')
+            return
+        }
     }
 }
