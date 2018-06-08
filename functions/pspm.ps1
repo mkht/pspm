@@ -113,13 +113,13 @@ function pspm {
             IfPresent   = $IfPresent
         }
         # run pre script
-        pspm-run -CommandName ('pre' + $Name) -IfPresent
+        pspm-run -CommandName ('pre' + $Command) -IfPresent
 
         # run main script
         pspm-run @param
 
         # run post script
-        pspm-run -CommandName ('post' + $Name) -IfPresent
+        pspm-run -CommandName ('post' + $Command) -IfPresent
 
         return
     }
