@@ -106,7 +106,7 @@ function pspm {
     }
 
     # pspm run (preserved name)
-    elseif (('start', ' restart', 'stop', 'test') -eq $Command) {
+    elseif (('start', 'restart', 'stop', 'test') -eq $Command) {
         [HashTable]$private:param = @{
             CommandName = $Command
             Arguments   = $Arguments
