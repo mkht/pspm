@@ -403,7 +403,19 @@ function pspm-run {
     $local:CurrentDir = $script:CurrentDir
 
     if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
+
         if ($PackageJson.scripts | Get-Member -MemberType NoteProperty -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $CommandName}) {
+            
+            # Load config
+            if ($PackageJson.config) {
+                $PackageJson.config.PSObject.Members | Where-Object {$_.MemberType -eq 'NoteProperty'} | ForEach-Object {
+                    $fullname = 'pspm_package_config_' + $_.Name
+                    Write-Verbose ('Load config:"{0}" from package.json. You can use config as $env:{1}' -f $_.Name, $fullname)
+                    New-Item -Path Env:/$fullname -Value $_.Value -Force >$null
+                }
+            }
+            
+            # Invoke script
             try {
                 $local:ScriptBlock = [scriptblock]::Create($PackageJson.scripts.($CommandName))
                 $local:ScriptBlock.Invoke($Arguments)

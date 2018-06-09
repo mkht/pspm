@@ -48,6 +48,10 @@ try {
                 test    = 'echo "test"'
                 hello   = 'echo "hello"'
                 args    = 'echo $args[0]'
+                conf    = 'echo $env:pspm_package_config_config'
+            }
+            config  = [PSCustomObject]@{
+                config = 'config'
             }
         }
 
@@ -280,6 +284,10 @@ try {
 
                 It 'pspm run <command> with arguments' {
                     pspm run args -Arguments 'arg1' | Should -Be 'arg1'
+                }
+
+                It 'pspm run <command> with config' {
+                    pspm run conf | Should -Be 'config'
                 }
 
                 It 'pspm run <command> -IfPresent (exist)' {
