@@ -23,22 +23,20 @@ try {
         $MockModuleName2 = 'MockModule2'
         $MockModuleVersion2 = '2.2.2.2'
 
-        $ValidPackageJson1 = @'
-{{
-  "dependencies": {{
-    "{0}": "{1}"
-  }}
-}}
-'@
+        $ValidPackageJson1 = (
+            '{{',
+            '  "dependencies": {{',
+            '    "{0}": "{1}"',
+            '  }}',
+            '}}') -join [System.Environment]::NewLine
 
-        $ValidPackageJson2 = @'
-{{
-  "dependencies": {{
-    "{0}": "{1}",
-    "{2}": "{3}"
-  }}
-}}
-'@
+        $ValidPackageJson2 = (
+            '{{',
+            '  "dependencies": {{',
+            '    "{0}": "{1}",',
+            '    "{2}": "{3}"',
+            '  }}',
+            '}}') -join [System.Environment]::NewLine
 
         $ScriptJsonObj1 = [PSCustomObject]@{
             scripts = [PSCustomObject]@{
