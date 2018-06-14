@@ -3,90 +3,118 @@ class SemVer :IComparable {
 
     # Major
     [ValidateRange(0, [int]::MaxValue)]
-    [int]$Major
+    Hidden [int]$_Major
 
     # Minor
     [ValidateRange(0, [int]::MaxValue)]
-    [int]$Minor = 0
+    Hidden [int]$_Minor = 0
 
     # Patch
     [ValidateRange(0, [int]::MaxValue)]
-    [int]$Patch = 0
+    Hidden [int]$_Patch = 0
 
     # Revision
     [ValidateRange(0, [int]::MaxValue)]
-    [int]$Revision = 0
+    Hidden [int]$_Revision = 0
 
     # PreReleaseLabel
     [ValidatePattern('^[.0-9A-Za-z-]*$')]
-    [string]$PreReleaseLabel
+    Hidden [string]$_PreReleaseLabel
 
     # BuildLabel
     [ValidatePattern('^[.0-9A-Za-z-]*$')]
-    [string]$BuildLabel
+    Hidden [string]$_BuildLabel
+
+    #region <#---- init() ----#>
+    Hidden init () {
+        $Members = $this | Get-Member -Force -MemberType Property -Name '_*'
+        ForEach ($Member in $Members) {
+            $PublicPropertyName = $Member.Name -replace '_', ''
+            # Define getter
+            $Getter = "return `$this.{0}" -f $Member.Name
+            # Define setter
+            $Setter = "throw [System.Management.Automation.RuntimeException]::new('{0} is a ReadOnly property.')" -f $PublicPropertyName
+
+            $AddMemberParams = @{
+                Name        = $PublicPropertyName
+                MemberType  = 'ScriptProperty'
+                Value       = [ScriptBlock]::Create($Getter)
+                SecondValue = [ScriptBlock]::Create($Setter)
+            }
+            $this | Add-Member @AddMemberParams
+        }
+    }
+    #endregion <#---- init() ----#>
 
     #region Constructor
     SemVer([int]$major) {
-        $this.Major = $major
+        $this.init()
+        $this._Major = $major
     }
 
     SemVer([int]$major, [int]$minor) {
-        $this.Major = $major
-        $this.Minor = $minor
+        $this.init()
+        $this._Major = $major
+        $this._Minor = $minor
     }
 
     SemVer([int]$major, [int]$minor, [int]$patch) {
-        $this.Major = $major
-        $this.Minor = $minor
-        $this.Patch = $patch
+        $this.init()
+        $this._Major = $major
+        $this._Minor = $minor
+        $this._Patch = $patch
     }
 
     SemVer([int]$major, [int]$minor, [int]$patch, [int]$revision) {
-        $this.Major = $major
-        $this.Minor = $minor
-        $this.Patch = $patch
-        $this.Revision = $revision
+        $this.init()
+        $this._Major = $major
+        $this._Minor = $minor
+        $this._Patch = $patch
+        $this._Revision = $revision
     }
 
     SemVer([int]$major, [int]$minor, [int]$patch, [int]$revision, [string]$prerelease, [string]$build) {
-        $this.Major = $major
-        $this.Minor = $minor
-        $this.Patch = $patch
-        $this.Revision = $revision
-        $this.PreReleaseLabel = $prerelease
-        $this.BuildLabel = $build
+        $this.init()
+        $this._Major = $major
+        $this._Minor = $minor
+        $this._Patch = $patch
+        $this._Revision = $revision
+        $this._PreReleaseLabel = $prerelease
+        $this._BuildLabel = $build
     }
 
     SemVer([version]$version) {
-        $this.Major = if ($version.Major -ge 0) {$version.Major} else {0}
-        $this.Minor = if ($version.Minor -ge 0) {$version.Minor} else {0}
-        $this.Patch = if ($version.Build -ge 0) {$version.Build} else {0}
-        $this.Revision = if ($version.Revision -ge 0) {$version.Revision} else {0}
+        $this.init()
+        $this._Major = if ($version.Major -ge 0) {$version.Major} else {0}
+        $this._Minor = if ($version.Minor -ge 0) {$version.Minor} else {0}
+        $this._Patch = if ($version.Build -ge 0) {$version.Build} else {0}
+        $this._Revision = if ($version.Revision -ge 0) {$version.Revision} else {0}
     }
 
     SemVer([string]$string) {
+        $this.init()
         $private:semver = [SemVer]::Parse($string)
-        $this.Major = $private:semver.Major
-        $this.Minor = $private:semver.Minor
-        $this.Patch = $private:semver.Patch
-        $this.Revision = $private:semver.Revision
-        $this.PreReleaseLabel = $private:semver.PreReleaseLabel
-        $this.BuildLabel = $private:semver.BuildLabel
+        $this._Major = $private:semver._Major
+        $this._Minor = $private:semver._Minor
+        $this._Patch = $private:semver._Patch
+        $this._Revision = $private:semver._Revision
+        $this._PreReleaseLabel = $private:semver._PreReleaseLabel
+        $this._BuildLabel = $private:semver._BuildLabel
     }
     #endregion Constructor
 
     <#---- ToString() ----#>
     [String] ToString() {
-        [string]$Ret = (($this.Major, $this.Minor, $this.Patch) -join '.')
+        [string]$Ret = (($this._Major, $this._Minor, $this._Patch) -join '.')
 
-        if ($this.Revision) {
-            $Ret += ('.{0}' -f $this.Revision)
+        if ($this._Revision) {
+            $Ret += ('.{0}' -f $this._Revision)
         }
-        if ($this.PreReleaseLabel) {
-            $Ret += ('-{0}' -f $this.PreReleaseLabel)
+        if ($this._PreReleaseLabel) {
+            $Ret += ('-{0}' -f $this._PreReleaseLabel)
         }
-        if ($this.BuildLabel) {
-            $Ret += ('+{0}' -f $this.BuildLabel)
+        if ($this._BuildLabel) {
+            $Ret += ('+{0}' -f $this._BuildLabel)
         }
 
         return $Ret
@@ -138,8 +166,8 @@ class SemVer :IComparable {
         $semver = [SemVer]$semver
 
         #Compare Major
-        if ($this.Major -ne $semver.Major) {
-            if ($this.Major -gt $semver.Major) {
+        if ($this._Major -ne $semver._Major) {
+            if ($this._Major -gt $semver._Major) {
                 return 1
             }
             else {
@@ -148,8 +176,8 @@ class SemVer :IComparable {
         }
 
         #Compare Minor
-        elseif ($this.Minor -ne $semver.Minor) {
-            if ($this.Minor -gt $semver.Minor) {
+        elseif ($this._Minor -ne $semver._Minor) {
+            if ($this._Minor -gt $semver._Minor) {
                 return 1
             }
             else {
@@ -158,8 +186,8 @@ class SemVer :IComparable {
         }
 
         #Compare Patch
-        elseif ($this.Patch -ne $semver.Patch) {
-            if ($this.Patch -gt $semver.Patch) {
+        elseif ($this._Patch -ne $semver._Patch) {
+            if ($this._Patch -gt $semver._Patch) {
                 return 1
             }
             else {
@@ -168,8 +196,8 @@ class SemVer :IComparable {
         }
 
         #Compare Revision
-        elseif ($this.Revision -ne $semver.Revision) {
-            if ($this.Revision -gt $semver.Revision) {
+        elseif ($this._Revision -ne $semver._Revision) {
+            if ($this._Revision -gt $semver._Revision) {
                 return 1
             }
             else {
@@ -178,19 +206,19 @@ class SemVer :IComparable {
         }
 
         #Compare Prerelease
-        elseif ($this.PreReleaseLabel -or $semver.PreReleaseLabel) {
-            if ((-not $this.PreReleaseLabel) -and $semver.PreReleaseLabel) {
+        elseif ($this._PreReleaseLabel -or $semver._PreReleaseLabel) {
+            if ((-not $this._PreReleaseLabel) -and $semver._PreReleaseLabel) {
                 return 1
             }
-            elseif ($this.PreReleaseLabel -and (-not $semver.PreReleaseLabel)) {
+            elseif ($this._PreReleaseLabel -and (-not $semver._PreReleaseLabel)) {
                 return -1
             }
-            elseif ($this.PreReleaseLabel -eq $semver.PreReleaseLabel) {
+            elseif ($this._PreReleaseLabel -eq $semver._PreReleaseLabel) {
                 return 0
             }
             else {
-                $identifierMyself = @($this.PreReleaseLabel.split('.'))
-                $identifierTarget = @($semver.PreReleaseLabel.split('.'))
+                $identifierMyself = @($this._PreReleaseLabel.split('.'))
+                $identifierTarget = @($semver._PreReleaseLabel.split('.'))
                 
                 for ($i = 0; $i -le $identifierMyself.Count; $i++) {
                     if ($identifierMyself[$i] -eq $identifierTarget[$i]) {
