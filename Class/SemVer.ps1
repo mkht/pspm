@@ -27,6 +27,7 @@ class SemVer :IComparable {
 
     #region <#---- init() ----#>
     Hidden init () {
+        # Add read-only properties
         $Members = $this | Get-Member -Force -MemberType Property -Name '_*'
         ForEach ($Member in $Members) {
             $PublicPropertyName = $Member.Name -replace '_', ''
@@ -246,4 +247,36 @@ class SemVer :IComparable {
 
         return 0
     }
+
+    #region <#---- Equals() override----#>
+    [bool] Equals([object]$object) {
+        $ver = ($object -as [Semver])
+
+        # If parameter is null, return false
+        if ($null -eq $ver) {
+            return $false
+        }
+
+        # Optimization for a common success case.
+        if ([Object]::ReferenceEquals($this, $ver)) {
+            return $true
+        }
+        
+        return (
+            # SemVer 2.0 standard requires to ignore 'BuildLabel' (Build metadata).
+            $this._Major -eq $ver._Major -and `
+                $this._Minor -eq $ver._Minor -and `
+                $this._Patch -eq $ver._Patch -and `
+                $this._Revision -eq $ver._Revision -and `
+                [string]::Equals($this._PreReleaseLabel, $ver._PreReleaseLabel, [System.StringComparison]::Ordinal)
+        )
+    }
+    #endregion <#---- Equals() override----#>
+
+    #region <#---- GetHashCode() override----#>
+    [int] GetHashCode(){
+        return $this.ToString().GetHashCode()
+    }
+    #endregion <#---- GetHashCode() override----#>
+
 }
