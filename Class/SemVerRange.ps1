@@ -507,4 +507,18 @@ Class SemVerRange {
     }
     #endregion <-- Satisfying() -->
 
+
+    #region <-- ToString() -->
+    <#
+    .SYNOPSIS
+    Get the range expression string
+
+    .RETURN
+    Range expression string
+    #>
+    [string] ToString(){
+        return $this.Expression
+    }
+    #endregion <-- ToString() -->
+
 }
