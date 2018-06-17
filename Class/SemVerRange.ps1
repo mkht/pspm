@@ -23,25 +23,32 @@ Class SemVerRange {
     .DESCRIPTION
     The minimum version of range
     #>
-    [SemVer]$MinimumVersion
+    [SemVer]$MinimumVersion = '0.0.0'
 
     <#
     .DESCRIPTION
     The maximum version of range
     #>
-    [SemVer]$MaximumVersion
+    [SemVer]$MaximumVersion = '0.0.0'
 
     <#
     .DESCRIPTION
     Expression string of range
     #>
-    [string]$Expression
+    [string]$Expression = '<0.0.0'
 
     # private properties
-    Hidden [bool]$_IncludeMaximum = $true
-    Hidden [bool]$_IncludeMinimum = $true
+    Hidden [bool]$_IncludeMaximum = $false
+    Hidden [bool]$_IncludeMinimum = $false
 
     #region <-- Constructor -->
+
+    <#
+    .SYNOPSIS
+    Construct a new range that not matched any of versions (<0.0.0)
+    #>
+    SemVerRange() {}
+
 
     <#
     .SYNOPSIS
