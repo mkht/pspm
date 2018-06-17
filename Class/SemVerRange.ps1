@@ -549,10 +549,9 @@ Class SemVerRange {
     #endregion <-- Satisfying() -->
 
 
-
     #region <-- Intersect() -->
 
-     <#
+    <#
     .SYNOPSIS
     Calculate the intersection between two ranges
 
@@ -568,11 +567,11 @@ Class SemVerRange {
     $RangeA.Intersect($rangeB)
     # => returns a new range that expressed for '>1.0.0 <=2.0.0'
     #>
-    [SemVerRange] Intersect([SemVerRange]$range){
+    [SemVerRange] Intersect([SemVerRange]$range) {
         return [SemVerRange]::Intersect($this, $range)
     }
 
-    
+
     <#
     .SYNOPSIS
     Calculate the intersection between two ranges
@@ -663,7 +662,7 @@ Class SemVerRange {
     [SemVerRange]::IntersectAll(@('>1.0.0', '<=2.0.0', '*')
     #>
     static [SemVerRange] IntersectAll([SemVerRange[]]$ranges) {
-        if($ranges.Count -le 1){
+        if ($ranges.Count -le 1) {
             return $ranges
         }
 
