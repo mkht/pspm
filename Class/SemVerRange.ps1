@@ -49,6 +49,9 @@ Class SemVerRange {
     #>
     [bool]$IncludeMinimum = $false
 
+    # Hidden property
+    Hidden [SemVerRange[]]$_RangeSet
+
     #region <-- Constructor -->
 
     <#
@@ -61,6 +64,7 @@ Class SemVerRange {
         $this.IncludeMinimum = $false
         $this.IncludeMaximum = $false
         $this.Expression = '<0.0.0'
+        $this._RangeSet = $this
     }
 
 
@@ -79,8 +83,8 @@ Class SemVerRange {
         $this.MinimumVersion = $minimum
         $this.IncludeMinimum = $true
         $this.IncludeMaximum = $true
-
         $this.Expression = ('>={0} <={1}' -f [string]$minimum, [string]$maximum)
+        $this._RangeSet = $this
     }
 
 
@@ -108,8 +112,9 @@ Class SemVerRange {
 
         if ($includeMinimum) {$operatorMin = '>='}else {$operatorMin = '>'}
         if ($includeMaximum) {$operatorMax = '<='}else {$operatorMax = '<'}
-
         $this.Expression = ('{2}{0} {3}{1}' -f [string]$minimum, [string]$maximum, $operatorMin, $operatorMax)
+
+        $this._RangeSet = $this
     }
 
 
@@ -124,23 +129,59 @@ Class SemVerRange {
     Thrown when the range expression is invalid or unsupported.
     #>
     SemVerRange([string]$expression) {
-        $isError = $false
+
+        $allExpressions = $expression.Trim().Split('||') | ForEach-Object {$_.Trim()} | Where-Object {-not [string]::IsNullOrEmpty($_)}
+
+        [SemVerRange[]]$RangeSet =
+        foreach ($subexp in $allExpressions) {
+            $subIntersection = $subexp.Split($null) | ForEach-Object {$_.Trim()} | Where-Object {-not [string]::IsNullOrEmpty($_)}
+
+            $intersectionSet =
+            foreach ($sub in $subIntersection) {
+                [SemVerRange]::Parse($sub)
+            }
+
+            [SemVerRange]::IntersectAll($intersectionSet)
+        }
+
+        if (@($RangeSet).Count -ge 1) {
+            $this.MinimumVersion = $RangeSet[0].MinimumVersion
+            $this.MaximumVersion = $RangeSet[0].MaximumVersion
+            $this.IncludeMinimum = $RangeSet[0].IncludeMinimum
+            $this.IncludeMaximum = $RangeSet[0].IncludeMaximum
+            $this.Expression = $RangeSet[0].Expression
+            $this._RangeSet = $RangeSet
+        }
+
+        if (@($RangeSet).Count -ge 2) {
+            $this.Expression = $RangeSet.Expression -join ' || '
+        }
         
+    }
+    #endregion <-- Constructor -->
+
+
+    #region <-- Parse() -->
+    static [SemVerRange] Parse([string]$expression) {
+        $isError = $false
+
+        [SemVerRange]$range = [SemVerRange]::new()
+
         # All
         if (($expression -eq '') -or ($expression -eq '*')) {
             #empty or asterisk match all versions
-            $this.MaximumVersion = [SemVer]::Max
-            $this.MinimumVersion = [SemVer]::Min
-            $this.IncludeMinimum = $true
-            $this.IncludeMaximum = $true
-            $this.Expression = '>=0.0.0'
+            $range.MaximumVersion = [SemVer]::Max
+            $range.MinimumVersion = [SemVer]::Min
+            $range.IncludeMinimum = $true
+            $range.IncludeMaximum = $true
+            $range.Expression = '>=0.0.0'
         }
 
         # X-Ranges (1.x, 1.2.x, 1.2.*)
         elseif ($expression -match '^\d+(\.\d+)?\.[x\*]') {
             $regex = ([RegEx]::new('\d+(?=\.[x\*])', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase))
 
-            $this._RangeHelper($expression, $regex)
+            $range = [SemVerRange]::_RangeHelper($expression, $regex)
         }
 
         # Partial range (1, 1.2)
@@ -149,7 +190,7 @@ Class SemVerRange {
             $regex = ([RegEx]::new('\d+(?=\.x)', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase))
 
             try {
-                $this._RangeHelper($newexp, $regex)
+                $range = [SemVerRange]::_RangeHelper($newexp, $regex)
             }
             catch [System.ArgumentException] {
                 $isError = $true
@@ -164,7 +205,7 @@ Class SemVerRange {
                 $regex = ([RegEx]::new('\d+(?=\.x)', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase))
 
                 try {
-                    $this._RangeHelper($newexp, $regex)
+                    $range = [SemVerRange]::_RangeHelper($newexp, $regex)
                 }
                 catch [System.ArgumentException] {
                     $isError = $true
@@ -176,12 +217,12 @@ Class SemVerRange {
                     [SemVer]$min = [SemVer]::Parse($expression.Substring(1))
                     [SemVer]$max = [SemVer]::new($min.Major, $min.Minor + 1, 0)
 
-                    $this.MaximumVersion = $max
-                    $this.MinimumVersion = $min
-                    $this.IncludeMinimum = $true
-                    $this.IncludeMaximum = $false
-            
-                    $this.Expression = ('>={0} <{1}' -f [string]$min, [string]$max)
+                    $range.MaximumVersion = $max
+                    $range.MinimumVersion = $min
+                    $range.IncludeMinimum = $true
+                    $range.IncludeMaximum = $false
+    
+                    $range.Expression = ('>={0} <{1}' -f [string]$min, [string]$max)
                 }
                 catch {
                     $isError = $true
@@ -214,28 +255,28 @@ Class SemVerRange {
 
                 $maxSemVer = $newver
                 $minSemVer = [SemVer]::Parse([regex]::Replace($escape[0], '[xX\*]', '0') + '-' + $escape[1])
-                $this.MaximumVersion = $maxSemVer
-                $this.MinimumVersion = $minSemVer
-                $this.IncludeMinimum = $true
-                $this.IncludeMaximum = $false
+                $range.MaximumVersion = $maxSemVer
+                $range.MinimumVersion = $minSemVer
+                $range.IncludeMinimum = $true
+                $range.IncludeMaximum = $false
 
-                $this.Expression = ('>={0} <{1}' -f [string]$minSemVer, [string]$maxSemVer)
+                $range.Expression = ('>={0} <{1}' -f [string]$minSemVer, [string]$maxSemVer)
             }
             catch {
                 $isError = $true
             }
         }
-        
+
         elseif ($expression.StartsWith('>')) {
             if ($expression.Substring(1).StartsWith('=')) {
                 #Grater equals (e.g. '>=1.2.0'
                 $local:tempVersion = $expression.Substring(2)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
-                    $this.MaximumVersion = [SemVer]::Max
-                    $this.MinimumVersion = [SemVer]::Parse($tempVersion)
-                    $this.IncludeMaximum = $true
-                    $this.IncludeMinimum = $true
-                    $this.Expression = ('>={0}' -f [string]$this.MinimumVersion)
+                    $range.MaximumVersion = [SemVer]::Max
+                    $range.MinimumVersion = [SemVer]::Parse($tempVersion)
+                    $range.IncludeMaximum = $true
+                    $range.IncludeMinimum = $true
+                    $range.Expression = ('>={0}' -f [string]$range.MinimumVersion)
                 }
                 else {
                     $isError = $true
@@ -245,11 +286,11 @@ Class SemVerRange {
                 #Grater than (e.g. '>1.2.0'
                 $local:tempVersion = $expression.Substring(1)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
-                    $this.MaximumVersion = [SemVer]::Max
-                    $this.MinimumVersion = [SemVer]::Parse($tempVersion)
-                    $this.IncludeMaximum = $true
-                    $this.IncludeMinimum = $false
-                    $this.Expression = ('>{0}' -f [string]$this.MinimumVersion)
+                    $range.MaximumVersion = [SemVer]::Max
+                    $range.MinimumVersion = [SemVer]::Parse($tempVersion)
+                    $range.IncludeMaximum = $true
+                    $range.IncludeMinimum = $false
+                    $range.Expression = ('>{0}' -f [string]$range.MinimumVersion)
                 }
                 else {
                     $isError = $true
@@ -261,11 +302,11 @@ Class SemVerRange {
                 #Less equals (e.g. '<=1.2.0'
                 $local:tempVersion = $expression.Substring(2)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
-                    $this.MaximumVersion = [SemVer]::Parse($tempVersion)
-                    $this.MinimumVersion = [SemVer]::Min
-                    $this.IncludeMaximum = $true
-                    $this.IncludeMinimum = $true
-                    $this.Expression = ('<={0}' -f [string]$this.MaximumVersion)
+                    $range.MaximumVersion = [SemVer]::Parse($tempVersion)
+                    $range.MinimumVersion = [SemVer]::Min
+                    $range.IncludeMaximum = $true
+                    $range.IncludeMinimum = $true
+                    $range.Expression = ('<={0}' -f [string]$range.MaximumVersion)
                 }
                 else {
                     $isError = $true
@@ -275,11 +316,11 @@ Class SemVerRange {
                 #Less than (e.g. '<1.2.0'
                 $local:tempVersion = $expression.Substring(1)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
-                    $this.MaximumVersion = [SemVer]::Parse($tempVersion)
-                    $this.MinimumVersion = [SemVer]::Min
-                    $this.IncludeMaximum = $false
-                    $this.IncludeMinimum = $true
-                    $this.Expression = ('<{0}' -f [string]$this.MaximumVersion)
+                    $range.MaximumVersion = [SemVer]::Parse($tempVersion)
+                    $range.MinimumVersion = [SemVer]::Min
+                    $range.IncludeMaximum = $false
+                    $range.IncludeMinimum = $true
+                    $range.Expression = ('<{0}' -f [string]$range.MaximumVersion)
                 }
                 else {
                     $isError = $true
@@ -290,12 +331,12 @@ Class SemVerRange {
         # Strict
         elseif ([SemVer]::TryParse($expression, [ref]$null)) {
             #Specified strict version (e.g. '1.2.0'
-            $this.MinimumVersion = [SemVer]::Parse($expression)
-            $this.MaximumVersion = $this.MinimumVersion
-            $this.IncludeMinimum = $true
-            $this.IncludeMaximum = $true
-            
-            $this.Expression = [string]$this.MinimumVersion
+            $range.MinimumVersion = [SemVer]::Parse($expression)
+            $range.MaximumVersion = $range.MinimumVersion
+            $range.IncludeMinimum = $true
+            $range.IncludeMaximum = $true
+    
+            $range.Expression = [string]$range.MinimumVersion
         }
 
         else {
@@ -305,8 +346,10 @@ Class SemVerRange {
         if ($isError) {
             throw [System.ArgumentException]::new(('Invalid range expression: "{0}"' -f $expression))
         }
+            
+        return $range
     }
-    #endregion <-- Constructor -->
+    #endregion <-- Parse() -->
 
 
     <#
@@ -314,23 +357,25 @@ Class SemVerRange {
     private helper method for X-Range parsing
     #>
     #region <-- _RangeHelper() -->
-    Hidden [void] _RangeHelper([string]$expression, [regex]$regex) {
+    Hidden static [SemVerRange] _RangeHelper([string]$expression, [regex]$regex) {
         $escape = $expression.Split('-')
-
         $match = $regex.Match($escape[0])
     
         $max = $regex.Replace($escape[0], ([int]$match.Value + 1)).Replace('x', '0').Replace('X', '0').Replace('*', '0')
         $min = $escape[0].Replace('x', '0').Replace('X', '0').Replace('*', '0') + '-' + $escape[1]
 
         try {
+            $ret = [SemVerRange]::new()
             $maxSemVer = [SemVer]::Parse($max)
             $minSemVer = [SemVer]::Parse($min)
-            $this.MaximumVersion = $maxSemVer
-            $this.MinimumVersion = $minSemVer
-            $this.IncludeMinimum = $true
-            $this.IncludeMaximum = $false
 
-            $this.Expression = ('>={0} <{1}' -f [string]$minSemVer, [string]$maxSemVer)
+            $ret.MaximumVersion = $maxSemVer
+            $ret.MinimumVersion = $minSemVer
+            $ret.IncludeMinimum = $true
+            $ret.IncludeMaximum = $false
+            $ret.Expression = ('>={0} <{1}' -f [string]$minSemVer, [string]$maxSemVer)
+
+            return $ret
         }
         catch [System.FormatException] {
             throw [System.ArgumentException]::new(('Invalid range expression: "{0}"' -f $expression))
@@ -371,29 +416,36 @@ Class SemVerRange {
     #>
     static [bool] IsSatisfied([SemVerRange]$range, [SemVer]$version) {
 
-        $ret = $true
+        foreach ($subRange in $range._RangeSet) {
+            $ret = $true
 
-        if ($range.MinimumVersion) {
-            if ($range.IncludeMinimum) {
-                $ret = $ret -and ($version -ge $range.MinimumVersion)
+            if ($subRange.MinimumVersion) {
+                if ($subRange.IncludeMinimum) {
+                    $ret = $ret -and ($version -ge $subRange.MinimumVersion)
+                }
+
+                else {
+                    $ret = $ret -and ($version -gt $subRange.MinimumVersion)
+                }
             }
 
-            else {
-                $ret = $ret -and ($version -gt $range.MinimumVersion)
+            if ($subRange.MaximumVersion) {
+                if ($subRange.IncludeMaximum) {
+                    $ret = $ret -and ($version -le $subRange.MaximumVersion)
+                }
+
+                else {
+                    $ret = $ret -and ($version -lt $subRange.MaximumVersion)
+                }
+            }
+
+            if ($ret) {
+                # short-circuit evaluation
+                return $true
             }
         }
 
-        if ($range.MaximumVersion) {
-            if ($range.IncludeMaximum) {
-                $ret = $ret -and ($version -le $range.MaximumVersion)
-            }
-
-            else {
-                $ret = $ret -and ($version -lt $range.MaximumVersion)
-            }
-        }
-
-        return $ret
+        return $false
     }
     #endregion <-- IsSatisfied() -->
 
