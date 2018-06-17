@@ -235,6 +235,7 @@ Class SemVerRange {
                     $this.MinimumVersion = [SemVer]::Parse($tempVersion)
                     $this.IncludeMaximum = $true
                     $this.IncludeMinimum = $true
+                    $this.Expression = ('>={0}' -f [string]$this.MinimumVersion)
                 }
                 else {
                     $isError = $true
@@ -248,6 +249,7 @@ Class SemVerRange {
                     $this.MinimumVersion = [SemVer]::Parse($tempVersion)
                     $this.IncludeMaximum = $true
                     $this.IncludeMinimum = $false
+                    $this.Expression = ('>{0}' -f [string]$this.MinimumVersion)
                 }
                 else {
                     $isError = $true
@@ -263,6 +265,7 @@ Class SemVerRange {
                     $this.MinimumVersion = [SemVer]::Min
                     $this.IncludeMaximum = $true
                     $this.IncludeMinimum = $true
+                    $this.Expression = ('<={0}' -f [string]$this.MaximumVersion)
                 }
                 else {
                     $isError = $true
@@ -276,6 +279,7 @@ Class SemVerRange {
                     $this.MinimumVersion = [SemVer]::Min
                     $this.IncludeMaximum = $false
                     $this.IncludeMinimum = $true
+                    $this.Expression = ('<{0}' -f [string]$this.MaximumVersion)
                 }
                 else {
                     $isError = $true
