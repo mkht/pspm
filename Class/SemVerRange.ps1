@@ -659,7 +659,7 @@ Class SemVerRange {
     Return the range that intersects with all ranges.
 
     .EXAMPLE
-    [SemVerRange]::IntersectAll(@('>1.0.0', '<=2.0.0', '*')
+    [SemVerRange]::IntersectAll(@('>1.0.0', '<=2.0.0', '*'))
     #>
     static [SemVerRange] IntersectAll([SemVerRange[]]$ranges) {
         if ($ranges.Count -le 1) {
