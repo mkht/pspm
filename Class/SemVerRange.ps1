@@ -549,6 +549,134 @@ Class SemVerRange {
     #endregion <-- Satisfying() -->
 
 
+
+    #region <-- Intersect() -->
+
+     <#
+    .SYNOPSIS
+    Calculate the intersection between two ranges
+
+    .PARAMETER range
+    The Range to intersect this Range with
+
+    .RETURN
+    Return the range that intersects between two ranges
+
+    .EXAMPLE
+    $RangeA = [SemVerRange]::new('>1.0.0')
+    $RangeB = [SemVerRange]::new('<=2.0.0')
+    $RangeA.Intersect($rangeB)
+    # => returns a new range that expressed for '>1.0.0 <=2.0.0'
+    #>
+    [SemVerRange] Intersect([SemVerRange]$range){
+        return [SemVerRange]::Intersect($this, $range)
+    }
+
+    
+    <#
+    .SYNOPSIS
+    Calculate the intersection between two ranges
+
+    .PARAMETER range0
+    The Range to intersect with range1
+
+    .PARAMETER range0
+    The Range to intersect with range0
+
+    .RETURN
+    Return the range that intersects between two ranges
+
+    .EXAMPLE
+    [SemVerRange]::Intersect('>1.0.0', '<=2.0.0')
+    # => returns a new range that expressed for '>1.0.0 <=2.0.0'
+    #>
+    static [SemVerRange] Intersect([SemVerRange]$range0, [SemVerRange]$range1) {
+
+        [SemVer]$newMaximum = $null
+        [SemVer]$newMinimum = $null
+        [bool]$newInculdeMax = $false
+        [bool]$newInculdeMin = $false
+
+        # sort
+        if ($range0.MaximumVersion -gt $range1.MaximumVersion) {
+            $higher = $range0
+            $lower = $range1
+        }
+        else {
+            $higher = $range1
+            $lower = $range0
+        }
+
+        # no intersection
+        if ($lower.MaximumVersion -lt $higher.MinimumVersion) {
+            return [SemVerRange]::new()
+        }
+
+        # determine higher limit
+        if ($lower.MaximumVersion -eq $higher.MinimumVersion) {
+            if ($lower.IncludeMaximum -and $higher.IncludeMinimum) {
+                $newMaximum = $lower.MaximumVersion
+                $newInculdeMax = $true
+            }
+            else {
+                return [SemVerRange]::new()
+            }
+        }
+        elseif ($lower.MaximumVersion -eq $higher.MaximumVersion) {
+            $newMaximum = $lower.MaximumVersion
+            $newInculdeMax = ($lower.IncludeMaximum -and $higher.IncludeMinimum)
+        }
+        else {
+            $newMaximum = $lower.MaximumVersion
+            $newInculdeMax = $lower.IncludeMaximum
+        }
+
+        # determine lower limit
+        if ($higher.MinimumVersion -gt $lower.MinimumVersion) {
+            $newMinimum = $higher.MinimumVersion
+            $newInculdeMin = $higher.IncludeMinimum
+        }
+        elseif ($higher.MinimumVersion -eq $lower.MinimumVersion) {
+            $newMinimum = $higher.MinimumVersion
+            $newInculdeMin = ($higher.IncludeMinimum -and $lower.IncludeMinimum)
+        }
+        else {
+            $newMinimum = $lower.MinimumVersion
+            $newInculdeMin = $lower.IncludeMinimum
+        }
+    
+        return [SemVerRange]::new($newMinimum, $newMaximum, $newInculdeMin, $newInculdeMax)
+    }
+
+
+    <#
+    .SYNOPSIS
+    Calculate the intersection of multiple ranges
+
+    .PARAMETER ranges
+    The list of ranges
+
+    .RETURN
+    Return the range that intersects with all ranges.
+
+    .EXAMPLE
+    [SemVerRange]::IntersectAll(@('>1.0.0', '<=2.0.0', '*')
+    #>
+    static [SemVerRange] IntersectAll([SemVerRange[]]$ranges) {
+        if($ranges.Count -le 1){
+            return $ranges
+        }
+
+        [SemVerRange]$ret = $ranges[0]
+        for ($i = 1; $i -lt $ranges.Count; $i++) {
+            $ret = [SemVerRange]::Intersect($ret, $ranges[$i])
+        }
+
+        return $ret
+    }
+    #endregion <-- Intersect() -->
+
+
     #region <-- ToString() -->
     <#
     .SYNOPSIS
