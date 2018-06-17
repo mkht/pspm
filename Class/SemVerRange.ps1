@@ -47,7 +47,13 @@ Class SemVerRange {
     .SYNOPSIS
     Construct a new range that not matched any of versions (<0.0.0)
     #>
-    SemVerRange() {}
+    SemVerRange() {
+        $this.MaximumVersion = [Semver]::Min
+        $this.MinimumVersion = [Semver]::Min
+        $this.IncludeMinimum = $false
+        $this.IncludeMaximum = $false
+        $this.Expression = '<0.0.0'
+    }
 
 
     <#
@@ -115,6 +121,8 @@ Class SemVerRange {
         # All
         if (($expression -eq '') -or ($expression -eq '*')) {
             #empty or asterisk match all versions
+            $this.MaximumVersion = [SemVer]::Max
+            $this.MinimumVersion = [SemVer]::Min
             $this.Expression = '>=0.0.0'
         }
 
@@ -213,6 +221,7 @@ Class SemVerRange {
                 #Grater equals (e.g. '>=1.2.0'
                 $local:tempVersion = $expression.Substring(2)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
+                    $this.MaximumVersion = [SemVer]::Max
                     $this.MinimumVersion = [SemVer]::Parse($tempVersion)
                     $this._IncludeMinimum = $true
                 }
@@ -224,6 +233,7 @@ Class SemVerRange {
                 #Grater than (e.g. '>1.2.0'
                 $local:tempVersion = $expression.Substring(1)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
+                    $this.MaximumVersion = [SemVer]::Max
                     $this.MinimumVersion = [SemVer]::Parse($tempVersion)
                     $this._IncludeMinimum = $false
                 }
@@ -238,7 +248,7 @@ Class SemVerRange {
                 $local:tempVersion = $expression.Substring(2)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
                     $this.MaximumVersion = [SemVer]::Parse($tempVersion)
-                    $this._IncludeMaximum = $true
+                    $this.MinimumVersion = [SemVer]::Min
                 }
                 else {
                     $isError = $true
