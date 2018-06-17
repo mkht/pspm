@@ -663,7 +663,7 @@ Class SemVerRange {
     #>
     static [SemVerRange] IntersectAll([SemVerRange[]]$ranges) {
         if ($ranges.Count -le 1) {
-            return $ranges
+            return $ranges[0]
         }
 
         [SemVerRange]$ret = $ranges[0]
