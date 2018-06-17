@@ -37,9 +37,17 @@ Class SemVerRange {
     #>
     [string]$Expression = '<0.0.0'
 
-    # private properties
-    Hidden [bool]$_IncludeMaximum = $false
-    Hidden [bool]$_IncludeMinimum = $false
+    <#
+    .DESCRIPTION
+    Whether or not to include the maximum version
+    #>
+    [bool]$IncludeMaximum = $false
+
+    <#
+    .DESCRIPTION
+    Whether or not to include the minimum version
+    #>
+    [bool]$IncludeMinimum = $false
 
     #region <-- Constructor -->
 
@@ -69,8 +77,8 @@ Class SemVerRange {
     SemVerRange([SemVer]$minimum, [SemVer]$maximum) {
         $this.MaximumVersion = $maximum
         $this.MinimumVersion = $minimum
-        $this._IncludeMinimum = $true
-        $this._IncludeMaximum = $true
+        $this.IncludeMinimum = $true
+        $this.IncludeMaximum = $true
 
         $this.Expression = ('>={0} <={1}' -f [string]$minimum, [string]$maximum)
     }
@@ -95,8 +103,8 @@ Class SemVerRange {
     SemVerRange([SemVer]$minimum, [SemVer]$maximum, [bool]$includeMinimum, [bool]$includeMaximum) {
         $this.MaximumVersion = $maximum
         $this.MinimumVersion = $minimum
-        $this._IncludeMinimum = $includeMinimum
-        $this._IncludeMaximum = $includeMaximum
+        $this.IncludeMinimum = $includeMinimum
+        $this.IncludeMaximum = $includeMaximum
 
         if ($includeMinimum) {$operatorMin = '>='}else {$operatorMin = '>'}
         if ($includeMaximum) {$operatorMax = '<='}else {$operatorMax = '<'}
@@ -123,6 +131,8 @@ Class SemVerRange {
             #empty or asterisk match all versions
             $this.MaximumVersion = [SemVer]::Max
             $this.MinimumVersion = [SemVer]::Min
+            $this.IncludeMinimum = $true
+            $this.IncludeMaximum = $true
             $this.Expression = '>=0.0.0'
         }
 
@@ -168,8 +178,8 @@ Class SemVerRange {
 
                     $this.MaximumVersion = $max
                     $this.MinimumVersion = $min
-                    $this._IncludeMinimum = $true
-                    $this._IncludeMaximum = $false
+                    $this.IncludeMinimum = $true
+                    $this.IncludeMaximum = $false
             
                     $this.Expression = ('>={0} <{1}' -f [string]$min, [string]$max)
                 }
@@ -206,8 +216,8 @@ Class SemVerRange {
                 $minSemVer = [SemVer]::Parse([regex]::Replace($escape[0], '[xX\*]', '0') + '-' + $escape[1])
                 $this.MaximumVersion = $maxSemVer
                 $this.MinimumVersion = $minSemVer
-                $this._IncludeMinimum = $true
-                $this._IncludeMaximum = $false
+                $this.IncludeMinimum = $true
+                $this.IncludeMaximum = $false
 
                 $this.Expression = ('>={0} <{1}' -f [string]$minSemVer, [string]$maxSemVer)
             }
@@ -223,7 +233,8 @@ Class SemVerRange {
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
                     $this.MaximumVersion = [SemVer]::Max
                     $this.MinimumVersion = [SemVer]::Parse($tempVersion)
-                    $this._IncludeMinimum = $true
+                    $this.IncludeMaximum = $true
+                    $this.IncludeMinimum = $true
                 }
                 else {
                     $isError = $true
@@ -235,7 +246,8 @@ Class SemVerRange {
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
                     $this.MaximumVersion = [SemVer]::Max
                     $this.MinimumVersion = [SemVer]::Parse($tempVersion)
-                    $this._IncludeMinimum = $false
+                    $this.IncludeMaximum = $true
+                    $this.IncludeMinimum = $false
                 }
                 else {
                     $isError = $true
@@ -249,6 +261,8 @@ Class SemVerRange {
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
                     $this.MaximumVersion = [SemVer]::Parse($tempVersion)
                     $this.MinimumVersion = [SemVer]::Min
+                    $this.IncludeMaximum = $true
+                    $this.IncludeMinimum = $true
                 }
                 else {
                     $isError = $true
@@ -259,7 +273,9 @@ Class SemVerRange {
                 $local:tempVersion = $expression.Substring(1)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
                     $this.MaximumVersion = [SemVer]::Parse($tempVersion)
-                    $this._IncludeMaximum = $false
+                    $this.MinimumVersion = [SemVer]::Min
+                    $this.IncludeMaximum = $false
+                    $this.IncludeMinimum = $true
                 }
                 else {
                     $isError = $true
@@ -272,8 +288,8 @@ Class SemVerRange {
             #Specified strict version (e.g. '1.2.0'
             $this.MinimumVersion = [SemVer]::Parse($expression)
             $this.MaximumVersion = $this.MinimumVersion
-            $this._IncludeMinimum = $true
-            $this._IncludeMaximum = $true
+            $this.IncludeMinimum = $true
+            $this.IncludeMaximum = $true
             
             $this.Expression = [string]$this.MinimumVersion
         }
@@ -307,8 +323,8 @@ Class SemVerRange {
             $minSemVer = [SemVer]::Parse($min)
             $this.MaximumVersion = $maxSemVer
             $this.MinimumVersion = $minSemVer
-            $this._IncludeMinimum = $true
-            $this._IncludeMaximum = $false
+            $this.IncludeMinimum = $true
+            $this.IncludeMaximum = $false
 
             $this.Expression = ('>={0} <{1}' -f [string]$minSemVer, [string]$maxSemVer)
         }
@@ -354,7 +370,7 @@ Class SemVerRange {
         $ret = $true
 
         if ($range.MinimumVersion) {
-            if ($range._IncludeMinimum) {
+            if ($range.IncludeMinimum) {
                 $ret = $ret -and ($version -ge $range.MinimumVersion)
             }
 
@@ -364,7 +380,7 @@ Class SemVerRange {
         }
 
         if ($range.MaximumVersion) {
-            if ($range._IncludeMaximum) {
+            if ($range.IncludeMaximum) {
                 $ret = $ret -and ($version -le $range.MaximumVersion)
             }
 
