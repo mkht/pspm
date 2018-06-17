@@ -25,6 +25,13 @@ class SemVer :IComparable {
     [ValidatePattern('^[.0-9A-Za-z-]*$')]
     Hidden [string]$_BuildLabel
 
+    # static member Max
+    static [SemVer]$Max = [SemVer]::new([int]::MaxValue, [int]::MaxValue, [int]::MaxValue, [int]::MaxValue)
+    
+    # static member Min
+    static [SemVer]$Min = [SemVer]::new(0)
+
+
     #region <#---- init() ----#>
     Hidden init () {
         # Add read-only properties
