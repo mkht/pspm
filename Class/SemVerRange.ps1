@@ -593,8 +593,8 @@ Class SemVerRange {
 
         [SemVer]$newMaximum = $null
         [SemVer]$newMinimum = $null
-        [bool]$newInculdeMax = $false
-        [bool]$newInculdeMin = $false
+        [bool]$newIncludeMax = $false
+        [bool]$newIncludeMin = $false
 
         # sort
         if ($range0.MaximumVersion -gt $range1.MaximumVersion) {
@@ -615,7 +615,7 @@ Class SemVerRange {
         if ($lower.MaximumVersion -eq $higher.MinimumVersion) {
             if ($lower.IncludeMaximum -and $higher.IncludeMinimum) {
                 $newMaximum = $lower.MaximumVersion
-                $newInculdeMax = $true
+                $newIncludeMax = $true
             }
             else {
                 return [SemVerRange]::new()
@@ -623,28 +623,28 @@ Class SemVerRange {
         }
         elseif ($lower.MaximumVersion -eq $higher.MaximumVersion) {
             $newMaximum = $lower.MaximumVersion
-            $newInculdeMax = ($lower.IncludeMaximum -and $higher.IncludeMinimum)
+            $newIncludeMax = ($lower.IncludeMaximum -and $higher.IncludeMinimum)
         }
         else {
             $newMaximum = $lower.MaximumVersion
-            $newInculdeMax = $lower.IncludeMaximum
+            $newIncludeMax = $lower.IncludeMaximum
         }
 
         # determine lower limit
         if ($higher.MinimumVersion -gt $lower.MinimumVersion) {
             $newMinimum = $higher.MinimumVersion
-            $newInculdeMin = $higher.IncludeMinimum
+            $newIncludeMin = $higher.IncludeMinimum
         }
         elseif ($higher.MinimumVersion -eq $lower.MinimumVersion) {
             $newMinimum = $higher.MinimumVersion
-            $newInculdeMin = ($higher.IncludeMinimum -and $lower.IncludeMinimum)
+            $newIncludeMin = ($higher.IncludeMinimum -and $lower.IncludeMinimum)
         }
         else {
             $newMinimum = $lower.MinimumVersion
-            $newInculdeMin = $lower.IncludeMinimum
+            $newIncludeMin = $lower.IncludeMinimum
         }
     
-        return [SemVerRange]::new($newMinimum, $newMaximum, $newInculdeMin, $newInculdeMax)
+        return [SemVerRange]::new($newMinimum, $newMaximum, $newIncludeMin, $newIncludeMax)
     }
 
 
