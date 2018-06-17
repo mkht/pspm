@@ -1,12 +1,3 @@
-
-enum Operator {
-    Equal = 0
-    LessThan
-    LessEqual
-    MoreThan
-    MoreEqual
-}
-
 <#
 .SYNOPSIS
 This class express a range of SemVer
@@ -47,8 +38,8 @@ Class SemVerRange {
     [string]$Expression
 
     # private properties
-    Hidden [Operator]$_GraterOperator = [Operator]::MoreEqual
-    Hidden [Operator]$_LowerOperator = [Operator]::LessEqual
+    Hidden [bool]$_IncludeMaximum = $true
+    Hidden [bool]$_IncludeMinimum = $true
 
     #region <-- Constructor -->
 
@@ -65,8 +56,8 @@ Class SemVerRange {
     SemVerRange([SemVer]$minimum, [SemVer]$maximum) {
         $this.MaximumVersion = $maximum
         $this.MinimumVersion = $minimum
-        $this._GraterOperator = [Operator]::MoreEqual
-        $this._LowerOperator = [Operator]::LessEqual
+        $this._IncludeMinimum = $true
+        $this._IncludeMaximum = $true
 
         $this.Expression = ('>={0} <={1}' -f [string]$minimum, [string]$maximum)
     }
@@ -133,8 +124,8 @@ Class SemVerRange {
 
                     $this.MaximumVersion = $max
                     $this.MinimumVersion = $min
-                    $this._GraterOperator = [Operator]::MoreEqual
-                    $this._LowerOperator = [Operator]::LessThan
+                    $this._IncludeMinimum = $true
+                    $this._IncludeMaximum = $false
             
                     $this.Expression = ('>={0} <{1}' -f [string]$min, [string]$max)
                 }
@@ -171,8 +162,8 @@ Class SemVerRange {
                 $minSemVer = [SemVer]::Parse([regex]::Replace($escape[0], '[xX\*]', '0') + '-' + $escape[1])
                 $this.MaximumVersion = $maxSemVer
                 $this.MinimumVersion = $minSemVer
-                $this._GraterOperator = [Operator]::MoreEqual
-                $this._LowerOperator = [Operator]::LessThan
+                $this._IncludeMinimum = $true
+                $this._IncludeMaximum = $false
 
                 $this.Expression = ('>={0} <{1}' -f [string]$minSemVer, [string]$maxSemVer)
             }
@@ -187,7 +178,7 @@ Class SemVerRange {
                 $local:tempVersion = $expression.Substring(2)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
                     $this.MinimumVersion = [SemVer]::Parse($tempVersion)
-                    $this._GraterOperator = [Operator]::MoreEqual
+                    $this._IncludeMinimum = $true
                 }
                 else {
                     $isError = $true
@@ -198,7 +189,7 @@ Class SemVerRange {
                 $local:tempVersion = $expression.Substring(1)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
                     $this.MinimumVersion = [SemVer]::Parse($tempVersion)
-                    $this._GraterOperator = [Operator]::MoreThan
+                    $this._IncludeMinimum = $false
                 }
                 else {
                     $isError = $true
@@ -211,7 +202,7 @@ Class SemVerRange {
                 $local:tempVersion = $expression.Substring(2)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
                     $this.MaximumVersion = [SemVer]::Parse($tempVersion)
-                    $this._LowerOperator = [Operator]::LessEqual
+                    $this._IncludeMaximum = $true
                 }
                 else {
                     $isError = $true
@@ -222,7 +213,7 @@ Class SemVerRange {
                 $local:tempVersion = $expression.Substring(1)
                 if ([SemVer]::TryParse($tempVersion, [ref]$null)) {
                     $this.MaximumVersion = [SemVer]::Parse($tempVersion)
-                    $this._LowerOperator = [Operator]::LessThan
+                    $this._IncludeMaximum = $false
                 }
                 else {
                     $isError = $true
@@ -235,8 +226,8 @@ Class SemVerRange {
             #Specified strict version (e.g. '1.2.0'
             $this.MinimumVersion = [SemVer]::Parse($expression)
             $this.MaximumVersion = $this.MinimumVersion
-            $this._GraterOperator = [Operator]::MoreEqual
-            $this._LowerOperator = [Operator]::LessEqual
+            $this._IncludeMinimum = $true
+            $this._IncludeMaximum = $true
             
             $this.Expression = [string]$this.MinimumVersion
         }
@@ -270,8 +261,8 @@ Class SemVerRange {
             $minSemVer = [SemVer]::Parse($min)
             $this.MaximumVersion = $maxSemVer
             $this.MinimumVersion = $minSemVer
-            $this._GraterOperator = [Operator]::MoreEqual
-            $this._LowerOperator = [Operator]::LessThan
+            $this._IncludeMinimum = $true
+            $this._IncludeMaximum = $false
 
             $this.Expression = ('>={0} <{1}' -f [string]$minSemVer, [string]$maxSemVer)
         }
@@ -317,38 +308,22 @@ Class SemVerRange {
         $ret = $true
 
         if ($range.MinimumVersion) {
-            switch ($range._GraterOperator) {
-                MoreEqual {
-                    $ret = $ret -and ($version -ge $range.MinimumVersion)
-                    break
-                }
+            if ($range._IncludeMinimum) {
+                $ret = $ret -and ($version -ge $range.MinimumVersion)
+            }
 
-                MoreThan {
-                    $ret = $ret -and ($version -gt $range.MinimumVersion)
-                    break
-                }
-
-                Default {
-                    throw [System.InvalidOperationException]::new()
-                }
+            else {
+                $ret = $ret -and ($version -gt $range.MinimumVersion)
             }
         }
 
         if ($range.MaximumVersion) {
-            switch ($range._LowerOperator) {
-                LessEqual {
-                    $ret = $ret -and ($version -le $range.MaximumVersion)
-                    break
-                }
+            if ($range._IncludeMaximum) {
+                $ret = $ret -and ($version -le $range.MaximumVersion)
+            }
 
-                LessThan {
-                    $ret = $ret -and ($version -lt $range.MaximumVersion)
-                    break
-                }
-
-                Default {
-                    throw [System.InvalidOperationException]::new()
-                }
+            else {
+                $ret = $ret -and ($version -lt $range.MaximumVersion)
             }
         }
 
@@ -516,7 +491,7 @@ Class SemVerRange {
     .RETURN
     Range expression string
     #>
-    [string] ToString(){
+    [string] ToString() {
         return $this.Expression
     }
     #endregion <-- ToString() -->
