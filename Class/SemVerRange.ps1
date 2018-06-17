@@ -72,6 +72,35 @@ Class SemVerRange {
 
     <#
     .SYNOPSIS
+    Construct a new range from a min & max version
+
+    .PARAMETER minimum
+    The minimum version of a range
+
+    .PARAMETER maximum
+    The maximum version of a range
+
+    .PARAMETER includeMinimum
+    Whether or not to include the minimum version
+
+    .PARAMETER includeMaximum
+    Whether or not to include the maximum version
+    #>
+    SemVerRange([SemVer]$minimum, [SemVer]$maximum, [bool]$includeMinimum, [bool]$includeMaximum) {
+        $this.MaximumVersion = $maximum
+        $this.MinimumVersion = $minimum
+        $this._IncludeMinimum = $includeMinimum
+        $this._IncludeMaximum = $includeMaximum
+
+        if ($includeMinimum) {$operatorMin = '>='}else {$operatorMin = '>'}
+        if ($includeMaximum) {$operatorMax = '<='}else {$operatorMax = '<'}
+
+        $this.Expression = ('{2}{0} {3}{1}' -f [string]$minimum, [string]$maximum, $operatorMin, $operatorMax)
+    }
+
+
+    <#
+    .SYNOPSIS
     Construct a new range from range expression string
 
     .PARAMETER expression
