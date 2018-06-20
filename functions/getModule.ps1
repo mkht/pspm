@@ -108,74 +108,92 @@ function getModuleFromGitHub {
 
 
 function getModuleFromPSGallery {
-    [CmdletBinding(DefaultParameterSetName = 'Latest')]
+    [CmdletBinding()]
     param
     (
-        # Parameter help description
+        # The name of module
         [Parameter(Mandatory)]
         [string]
         $Name,
 
-        # Parameter help description
-        [Parameter(ParameterSetName = 'StrictVersion')]
-        [System.Version]
-        $RequiredVersion,
+        # Desired version (semver range expression)
+        [Parameter()]
+        [string]
+        $Version = '*',
 
-        # Parameter help description
-        [Parameter(ParameterSetName = 'RangeVersion')]
-        [System.Version]
-        $MinimumVersion,
-
-        # Parameter help description
-        [Parameter(ParameterSetName = 'RangeVersion')]
-        [System.Version]
-        $MaximumVersion,
-
-        # Parameter help description
+        # The path for download
         [Parameter(Mandatory)]
         [string]
-        $Path
+        $Path,
+
+        # Get module from PSGallery even if the module already exists
+        [Parameter()]
+        [switch]
+        $Force
     )
+
+    $Latest = ($Version -eq 'Latest')   #"Latest" is special term
     
-    $local:isSkipDownload = $false
-
-    $foundModules = Find-Module -Name $Name -AllVersions -ErrorAction SilentlyContinue
-    if ($RequiredVersion) {
-        $foundModules = $foundModules | ? {$_.Version -eq $RequiredVersion}
-    }
-    elseif ($MinimumVersion -or $MaximumVersion) {
-        if ($MinimumVersion) {
-            $foundModules = $foundModules | ? {$_.Version -ge $MinimumVersion}
+    if (-not $Latest) {
+        try {
+            $SemVerRange = [SemVerRange]::new($Version) #throw exception on parse error
         }
-        if ($MaximumVersion) {
-            $foundModules = $foundModules | ? {$_.Version -le $MaximumVersion}
+        catch {
+            throw
+            return
         }
     }
+    
+    if ((-not $Latest) -and (-not $Force)) {
+        if (Test-Path (Join-path $Path $Name)) {
+            $local:moduleInfo = Get-ModuleInfo -Path (Join-path $Path $Name) -ErrorAction SilentlyContinue
+            if ($SemVerRange.IsSatisfied($moduleInfo.ModuleVersion)) {
+                # Already exist
+                Write-Host ('{0}@{1}: Module already exists in Modules directory. Skip download.' -f $Name, $moduleInfo.ModuleVersion)
+                $moduleInfo
+                return
+            }
+        }
+    }
 
-    $targetModule = $foundModules | ? {$_.Version} | sort Version -Descending | select -First 1
+    if ((-not $Latest) -and (Get-Command Find-Module).Parameters.AllowPrerelease) {
+        # Only PowerShell 6.0+ has AllowPrerelease param
+        $foundModules = Find-Module -Name $Name -AllVersions -AllowPrerelease -ErrorAction SilentlyContinue
+    }
+    else {
+        $foundModules = Find-Module -Name $Name -AllVersions -ErrorAction SilentlyContinue
+    }
+
+    if ($Latest) {
+        $targetModule = $foundModules | sort Version -Descending | select -First 1
+    }
+    else {
+        $targetModule = $foundModules | ? {$SemVerRange.IsSatisfied($_.Version)} | sort Version -Descending | select -First 1
+    }
 
     if (($targetModule | Measure-Object).count -le 0) {
         Write-Error ('{0}: No match found for the specified search criteria and module name' -f $Name)
         return
     }
 
-    if (Test-Path (Join-path $Path $Name)) {
-        $local:moduleInfo = Get-ModuleInfo -Path (Join-path $Path $Name) -ErrorAction SilentlyContinue
-        if (([Version]$targetModule.Version) -eq $moduleInfo.ModuleVersion) {
-            # Already downloaded
-            Write-Host ('{0}@{1}: Module already exists in Modules directory. Skip download.' -f $Name, $targetModule.Version)
-            $isSkipDownload = $true
-        }
-    }
-
-    if (-Not $isSkipDownload) {
+    if (-not $Force) {
         if (Test-Path (Join-path $Path $Name)) {
-            Remove-Item -Path (Join-path $Path $Name) -Recurse -Force
+            $local:moduleInfo = Get-ModuleInfo -Path (Join-path $Path $Name) -ErrorAction SilentlyContinue
+            if (([Version]$targetModule.Version) -eq $moduleInfo.ModuleVersion) {
+                # Already downloaded
+                Write-Host ('{0}@{1}: Module already exists in Modules directory. Skip download.' -f $Name, $targetModule.Version)
+                $moduleInfo
+                return
+            }
         }
-
-        Write-Host ('{0}@{1}: Downloading module.' -f $Name, $targetModule.Version)
-        $targetModule | Save-Module -Path $Path -Force -ErrorAction Stop
     }
+
+    if (Test-Path (Join-path $Path $Name)) {
+        Remove-Item -Path (Join-path $Path $Name) -Recurse -Force
+    }
+
+    Write-Host ('{0}@{1}: Downloading module.' -f $Name, $targetModule.Version)
+    $targetModule | Save-Module -Path $Path -Force -ErrorAction Stop
 
     if (Test-Path (Join-path $Path $Name)) {
         $moduleInfo = Get-ModuleInfo -Path (Join-path $Path $Name) -ErrorAction SilentlyContinue
@@ -234,23 +252,10 @@ function parseModuleType {
 
             # <version> (PSGallery)
             Default {
-                $local:parsedVersion = parseVersion -Version $_ -ErrorAction Stop
-
                 $Result = @{
-                    Type = 'PSGallery'
-                    Name = $Name
-                }
-
-                if ($parsedVersion.RequiredVersion) {
-                    $Result.RequiredVersion = $parsedVersion.RequiredVersion
-                }
-                else {
-                    if ($parsedVersion.MaximumVersion) {
-                        $Result.MaximumVersion = $parsedVersion.MaximumVersion
-                    }
-                    if ($parsedVersion.MinimumVersion) {
-                        $Result.MinimumVersion = $parsedVersion.MinimumVersion
-                    }
+                    Type    = 'PSGallery'
+                    Name    = $Name
+                    Version = $_
                 }
             }
         }
@@ -292,23 +297,11 @@ function parseModuleType {
             '^.+@.+' {
                 $local:moduleName = $_.Split("@")[0]
                 $local:version = $_.Split("@")[1]
-                $local:parsedVersion = parseVersion -Version $version -ErrorAction Stop
 
                 $Result = @{
-                    Type = 'PSGallery'
-                    Name = $moduleName
-                }
-
-                if ($parsedVersion.RequiredVersion) {
-                    $Result.RequiredVersion = $parsedVersion.RequiredVersion
-                }
-                else {
-                    if ($parsedVersion.MaximumVersion) {
-                        $Result.MaximumVersion = $parsedVersion.MaximumVersion
-                    }
-                    if ($parsedVersion.MinimumVersion) {
-                        $Result.MinimumVersion = $parsedVersion.MinimumVersion
-                    }
+                    Type    = 'PSGallery'
+                    Name    = $moduleName
+                    Version = $version
                 }
 
                 break
@@ -319,127 +312,14 @@ function parseModuleType {
                 $local:moduleName = $_.Split("@")[0]
 
                 $Result = @{
-                    Type = 'PSGallery'
-                    Name = $moduleName
+                    Type    = 'PSGallery'
+                    Name    = $moduleName
+                    Version = '*'
                 }
             }
         }
     }
 
     $Result
-
 }
 
-
-function parseVersion {
-    [CmdletBinding()]
-    [OutputType([HashTable])]
-    param
-    (
-        [Parameter(Mandatory)]
-        [AllowEmptyString()]
-        [string]
-        $Version
-    )
-
-    $ReturnHash = @{}
-
-    $isError = $false
-
-    if (($Version -eq '') -or ($Version -eq '*') -or ($Version -eq 'latest')) {
-        #empty or asterisk or latest means not specified (= latest)
-        $ReturnHash
-    }
-    elseif ([System.Version]::TryParse($Version, [ref]$null)) {
-        #Specified strict version (e.g. '1.2.0'
-        $ReturnHash.RequiredVersion = [System.Version]::Parse($Version)
-    }
-    elseif ($Version.StartsWith('>')) {
-        if ($Version.Substring(1).StartsWith('=')) {
-            #Grater equals (e.g. '>=1.2.0'
-            $local:tempVersion = $Version.Substring(2)
-            if ([System.Version]::TryParse($tempVersion, [ref]$null)) {
-                $ReturnHash.MinimumVersion = [System.Version]::Parse($tempVersion)
-            }
-            else {
-                $isError = $true
-            }
-        }
-        else {
-            #Grater than (e.g. '>1.2.0'
-            $local:tempVersion = $Version.Substring(1)
-            if ([System.Version]::TryParse($tempVersion, [ref]$null)) {
-                $local:v = [System.Version]::Parse($tempVersion)
-                $ReturnHash.MinimumVersion = [System.Version]::New($v.Major, $v.Minor, $v.Build, $v.Revision + 1)
-            }
-            else {
-                $isError = $true
-            }
-        }
-    }
-    elseif ($Version.StartsWith('<')) {
-        if ($Version.Substring(1).StartsWith('=')) {
-            #Less equals (e.g. '<=1.2.0'
-            $local:tempVersion = $Version.Substring(2)
-            if ([System.Version]::TryParse($tempVersion, [ref]$null)) {
-                $ReturnHash.MaximumVersion = [System.Version]::Parse($tempVersion)
-            }
-            else {
-                $isError = $true
-            }
-        }
-        else {
-            #Less than (e.g. '<1.2.0'
-            $local:tempVersion = $Version.Substring(1)
-            if ([System.Version]::TryParse($tempVersion, [ref]$null)) {
-                $local:v = [System.Version]::Parse($tempVersion)
-                #region Version decrement
-                $local:major = $v.Major
-                $local:Minor = $v.Minor
-                $local:Build = $v.Build
-                $local:Revision = $v.Revision
-                if ($v.Revision -le 0) {
-                    $Revision = [Int32]::MaxValue
-                    if ($v.Build -le 0) {
-                        $Build = [Int32]::MaxValue
-                        if ($v.Minor -le 0) {
-                            $Minor = [Int32]::MaxValue
-                            $Major--
-                        }
-                        else {
-                            $Minor--
-                        }
-                    }
-                    else {
-                        $Build--
-                    }
-                }
-                else {
-                    $Revision--
-                }
-                #endregion
-
-                if (@($Major, $Minor, $Build, $Revision).Where( {$_ -lt 0} ).Count) {
-                    $isError = $true
-                }
-                else {
-                    $ReturnHash.MaximumVersion = [System.Version]::New($Major, $Minor, $Build, $Revision)
-                }
-            }
-            else {
-                $isError = $true
-            }
-        }
-    }
-    else {
-        #Not supported format
-        $isError = $true
-    }
-
-    if ($isError) {
-        Write-Error ('"{0}" is unsupported version format.' -f $Version)
-    }
-    else {
-        $ReturnHash
-    }
-}
