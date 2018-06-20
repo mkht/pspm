@@ -13,7 +13,7 @@ $Classist = @(
 $Classist | foreach {
     . (Join-Path (Join-Path $modulePath $classPath) $_)
 }
-#endregion Load functions
+#endregion Load classes
 
 #region Load functions
 $FunctionList = @(
