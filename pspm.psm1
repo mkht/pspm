@@ -1,7 +1,19 @@
 #Requires -Version 4
 
 $modulePath = $PSScriptRoot
+$classPath = '/Class'
 $functionsPath = '/functions'
+
+#region Load classes
+$Classist = @(
+    'SemVer.ps1'
+    'SemVerRange.ps1'
+)
+
+$Classist | foreach {
+    . (Join-Path (Join-Path $modulePath $classPath) $_)
+}
+#endregion Load classes
 
 #region Load functions
 $FunctionList = @(
