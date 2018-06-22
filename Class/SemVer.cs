@@ -439,9 +439,9 @@ namespace pspm
         }
 
 
-        public override bool Equals(Object o)
+        public override bool Equals(object obj)
         {
-            return this.Equals((SemVer)o);
+            return this.Equals(obj as SemVer);
         }
 
 
