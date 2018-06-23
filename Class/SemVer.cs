@@ -328,13 +328,23 @@ namespace pspm
         }
 
 
-        int IComparable.CompareTo(object obj)
+        public int CompareTo(object obj)
         {
-
             if (obj == null) { return 1; }
 
+            var v = obj as SemVer;
+            if (v == null)
+            {
+                throw new ArgumentException(nameof(obj));
+            }
 
-            SemVer semver = (SemVer)obj;
+            return CompareTo(v);
+        }
+
+
+        public int CompareTo(SemVer semver)
+        {
+            if ((object)semver == null) { return 1; }
 
             // Compare Major
             if (this.Major != semver.Major)
@@ -414,12 +424,6 @@ namespace pspm
             }
 
             return 0;
-        }
-
-
-        public int CompareTo(SemVer other)
-        {
-            return this.CompareTo(other);
         }
 
 
