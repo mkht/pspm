@@ -4,16 +4,16 @@ $modulePath = $PSScriptRoot
 $classPath = '/Class'
 $functionsPath = '/functions'
 
-#region Load classes
-$Classist = @(
-    'SemVer.ps1'
-    'SemVerRange.ps1'
+#region Load Class Libraries
+$DllList = @(
+    '/bin/SemVer.dll'
 )
 
-$Classist | foreach {
-    . (Join-Path (Join-Path $modulePath $classPath) $_)
+$DllList | foreach {
+    $private:csharp = Get-Content -Path (Join-Path (Join-Path $modulePath $classPath) $_) -Raw
+    Add-Type -Path (Join-Path (Join-Path $modulePath $classPath) $_)
 }
-#endregion Load classes
+#endregion Load Class Libraries
 
 #region Load functions
 $FunctionList = @(
