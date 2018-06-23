@@ -592,35 +592,26 @@ namespace pspm
             bool newIncludeMin = false;
 
             SemVerRange higher, lower;
-            Console.WriteLine("IntersectA");
 
             //sort
             if (range0.MaximumVersion > range1.MaximumVersion)
             {
-                Console.WriteLine("sort 1");
-
                 higher = range0;
                 lower = range1;
             }
             else
             {
-                Console.WriteLine("sort 2");
-
                 higher = range1;
                 lower = range0;
             }
 
             // no intersection
-            Console.WriteLine("no Intersect");
-
             if (lower.MaximumVersion < higher.MinimumVersion)
             {
                 return new SemVerRange();
             }
 
             // determine higher limit
-            Console.WriteLine("determine higher limit");
-
             if (lower.MaximumVersion == higher.MinimumVersion)
             {
                 if (lower.IncludeMaximum && higher.IncludeMinimum)
@@ -645,8 +636,6 @@ namespace pspm
             }
 
             // determine lower limit
-            Console.WriteLine("determine lower limit");
-
             if (higher.MinimumVersion > lower.MinimumVersion)
             {
                 newMin = higher.MinimumVersion;
@@ -663,7 +652,6 @@ namespace pspm
                 newIncludeMin = lower.IncludeMinimum;
             }
 
-            Console.WriteLine($"min:{newMin} max:{newMax} inmin:{newIncludeMin} inmax:{newIncludeMax}");
             return new SemVerRange(newMin, newMax, newIncludeMin, newIncludeMax);
         }
 
