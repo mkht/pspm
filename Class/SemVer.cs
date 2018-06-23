@@ -10,8 +10,8 @@ namespace pspm
         private int _Minor = 0;
         private int _Patch = 0;
         private int _Revision = 0;
-        private string _PreReleaseLabel = "";
-        private string _BuildLabel = "";
+        private string _PreReleaseLabel = null;
+        private string _BuildLabel = null;
 
         private static Regex LabelValidator = new Regex("^[.0-9A-Za-z-]*$");
 
@@ -93,7 +93,7 @@ namespace pspm
 
             private set
             {
-                if (LabelValidator.IsMatch(value))
+                if (value == null || LabelValidator.IsMatch(value))
                 {
                     this._PreReleaseLabel = value;
                 }
@@ -110,7 +110,7 @@ namespace pspm
 
             private set
             {
-                if (LabelValidator.IsMatch(value))
+                if (value == null || LabelValidator.IsMatch(value))
                 {
                     this._BuildLabel = value;
                 }
