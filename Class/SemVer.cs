@@ -4,6 +4,9 @@ using System.Text.RegularExpressions;
 
 namespace pspm
 {
+    //:------------------------:
+    #region SemVer
+    //:------------------------:
     public class SemVer : IComparable, IComparable<SemVer>, IEquatable<SemVer>
     {
         private int _Major;
@@ -13,7 +16,7 @@ namespace pspm
         private string _PreReleaseLabel = null;
         private string _BuildLabel = null;
 
-        private static Regex LabelValidator = new Regex("^[.0-9A-Za-z-]*$");
+        private static readonly Regex LabelValidator = new Regex(@"^[.0-9A-Za-z-]*$");
 
         //static member
         public static SemVer Max = new SemVer(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
@@ -31,7 +34,7 @@ namespace pspm
                 }
                 else
                 {
-                    throw new ArgumentOutOfRangeException(string.Format("{0} should be between 0 and {1}", "Major", int.MaxValue.ToString()));
+                    throw new ArgumentOutOfRangeException($"{nameof(Major)} should be between 0 and {int.MaxValue.ToString()}");
                 }
             }
         }
@@ -48,7 +51,7 @@ namespace pspm
                 }
                 else
                 {
-                    throw new ArgumentOutOfRangeException(string.Format("{0} should be between 0 and {1}", "Minor", int.MaxValue.ToString()));
+                    throw new ArgumentOutOfRangeException($"{nameof(Minor)} should be between 0 and {int.MaxValue.ToString()}");
                 }
             }
         }
@@ -65,7 +68,7 @@ namespace pspm
                 }
                 else
                 {
-                    throw new ArgumentOutOfRangeException(string.Format("{0} should be between 0 and {1}", "Patch", int.MaxValue.ToString()));
+                    throw new ArgumentOutOfRangeException($"{nameof(Patch)} should be between 0 and {int.MaxValue.ToString()}");
                 }
             }
         }
@@ -82,7 +85,7 @@ namespace pspm
                 }
                 else
                 {
-                    throw new ArgumentOutOfRangeException(string.Format("{0} should be between 0 and {1}", "Revision", int.MaxValue.ToString()));
+                    throw new ArgumentOutOfRangeException($"{nameof(Revision)} should be between 0 and {int.MaxValue.ToString()}");
                 }
             }
         }
@@ -99,7 +102,7 @@ namespace pspm
                 }
                 else
                 {
-                    throw new ArgumentException(string.Format("{0} contains invalid character", "PreReleaseLabel"));
+                    throw new ArgumentException($"{nameof(PreReleaseLabel)} contains invalid character");
                 }
             }
         }
@@ -116,39 +119,29 @@ namespace pspm
                 }
                 else
                 {
-                    throw new ArgumentException(string.Format("{0} contains invalid character", "BuildLabel"));
+                    throw new ArgumentException($"{nameof(BuildLabel)} contains invalid character");
                 }
             }
         }
 
         // Constructor
-        public SemVer(int major)
+        public SemVer(int major) : this(major, 0, 0, 0, null, null) { }
+
+        public SemVer(int major, int minor) : this(major, minor, 0, 0, null, null) { }
+
+        public SemVer(int major, int minor, int patch) : this(major, minor, patch, 0, null, null) { }
+
+        public SemVer(int major, int minor, int patch, int revision) : this(major, minor, patch, revision, null, null) { }
+
+        public SemVer(int major, int minor, int patch, int revision, string prerelease) : this(major, minor, patch, revision, prerelease, null) { }
+
+        public SemVer(int major, int minor, int patch, int revision, string prerelease, string build)
         {
             this.Major = major;
-        }
-
-        public SemVer(int major, int minor) : this(major)
-        {
             this.Minor = minor;
-        }
-
-        public SemVer(int major, int minor, int patch) : this(major, minor)
-        {
             this.Patch = patch;
-        }
-
-        public SemVer(int major, int minor, int patch, int revision) : this(major, minor, patch)
-        {
             this.Revision = revision;
-        }
-
-        public SemVer(int major, int minor, int patch, int revision, string prerelease) : this(major, minor, patch, revision)
-        {
             this.PreReleaseLabel = prerelease;
-        }
-
-        public SemVer(int major, int minor, int patch, int revision, string prerelease, string build) : this(major, minor, patch, revision, prerelease)
-        {
             this.BuildLabel = build;
         }
 
@@ -202,9 +195,11 @@ namespace pspm
         public static SemVer Parse(string expression)
         {
             //split major.minor.patch
-            string[] numbers = expression.Split('-')[0].Split('+')[0].Split('.');
+            string[] numbers = expression.Split(new char[] { '-', '+' })[0].Split('.');
 
-            int tMajor;
+            int tMinor, tMajor, tPatch, tRevision;
+            string tPreReleaseLabel = "", tBuildLabel = "";
+
             if (int.TryParse(numbers[0], out tMajor))
             {
                 if (tMajor < 0)
@@ -217,7 +212,6 @@ namespace pspm
                 throw new FormatException();
             }
 
-            int tMinor;
             if (numbers.Length <= 1)
             {
                 tMinor = 0;
@@ -234,7 +228,6 @@ namespace pspm
                 throw new FormatException();
             }
 
-            int tPatch;
             if (numbers.Length <= 2)
             {
                 tPatch = 0;
@@ -251,7 +244,6 @@ namespace pspm
                 throw new FormatException();
             }
 
-            int tRevision;
             if (numbers.Length <= 3)
             {
                 tRevision = 0;
@@ -269,9 +261,6 @@ namespace pspm
             }
 
             //split prelease+buildmeta
-            string tPreReleaseLabel = "";
-            string tBuildLabel = "";
-
             string prerelease = "";
             int indexI = expression.IndexOf("-");
             if (indexI >= 1)
@@ -308,7 +297,6 @@ namespace pspm
             }
 
             return new SemVer(tMajor, tMinor, tPatch, tRevision, tPreReleaseLabel, tBuildLabel);
-
         }
 
 
@@ -389,15 +377,12 @@ namespace pspm
                 string[] identifierTarget = semver.PreReleaseLabel.Split('.');
                 int minLength = Math.Min(identifierMyself.Length, identifierTarget.Length);
 
-
                 for (int i = 0; i < minLength; i++)
                 {
                     var my = identifierMyself[i];
                     var tr = identifierTarget[i];
-
-                    int num_my, num_tr;
-                    bool isNum_my = int.TryParse(my, out num_my);
-                    bool isNum_tr = int.TryParse(tr, out num_tr);
+                    bool isNum_my = int.TryParse(my, out int num_my);
+                    bool isNum_tr = int.TryParse(tr, out int num_tr);
 
                     // identifiers consisting of only digits are compared numerically
                     if (isNum_my && isNum_tr)
@@ -429,24 +414,14 @@ namespace pspm
 
         public static int Compare(SemVer ver1, SemVer ver2)
         {
-            if (ver1 != null)
-            {
-                return ver1.CompareTo(ver2);
-            }
-
-            if (ver2 != null)
-            {
-                return -1;
-            }
+            if (ver1 != null) { return ver1.CompareTo(ver2); }
+            if (ver2 != null) { return -1; }
 
             return 0;
         }
 
 
-        public override bool Equals(object obj)
-        {
-            return this.Equals(obj as SemVer);
-        }
+        public override bool Equals(object obj) => this.Equals(obj as SemVer);
 
 
         public bool Equals(SemVer other)
@@ -468,10 +443,7 @@ namespace pspm
         }
 
 
-        public override int GetHashCode()
-        {
-            return this.ToString().GetHashCode();
-        }
+        public override int GetHashCode() => this.ToString().GetHashCode();
 
 
         //Operator override
@@ -525,4 +497,7 @@ namespace pspm
             return (ver2 <= ver1);
         }
     }
+    //:------------------------:
+    #endregion SemVer
+    //:------------------------:
 }
