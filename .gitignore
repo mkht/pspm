@@ -2,3 +2,4 @@ Modules/
 package.json
 Class/obj/
 Class/bin/Debug/
+*.pdb
