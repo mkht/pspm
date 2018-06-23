@@ -136,7 +136,7 @@ function getModuleFromPSGallery {
     
     if (-not $Latest) {
         try {
-            $SemVerRange = [SemVerRange]::new($Version) #throw exception on parse error
+            $SemVerRange = [pspm.SemVerRange]::new($Version) #throw exception on parse error
         }
         catch {
             throw
