@@ -53,45 +53,31 @@ namespace pspm
         /// Expression string of range
         /// </summary>
         public string Expression { get; private set; }
+
         public SemVerRange[] RangeSet { get; private set; }
 
 
         /// <summary>
-        /// Construct a new range that not matched any of versions (<0.0.0)
+        /// Construct a new range that not matched any of versions (&lt;0.0.0)
         /// </summary>
-        public SemVerRange()
+        public SemVerRange() : this(SemVer.Min, SemVer.Min, false, false)
         {
-            this.MaximumVersion = SemVer.Min;
-            this.MinimumVersion = SemVer.Min;
-            this.IncludeMaximum = false;
-            this.IncludeMinimum = false;
             this.Expression = "<0.0.0";
-
-            this.RangeSet = new SemVerRange[] { this };
         }
 
 
         /// <summary>
         /// Construct a new range from a min &amp; max version
         /// </summary>
-        /// <param name="min">The minimum version of a range (&lt;=min)</param>
+        /// <param name="min">The minimum version of a range (&gt;=min)</param>
         /// <param name="max">The maximum version of a range (&lt;=max)</param>
-        public SemVerRange(SemVer min, SemVer max)
-        {
-            this.MaximumVersion = max;
-            this.MinimumVersion = min;
-            this.IncludeMaximum = true;
-            this.IncludeMinimum = true;
-            this.Expression = $">={min.ToString()} <={max.ToString()}";
-
-            this.RangeSet = new SemVerRange[] { this };
-        }
+        public SemVerRange(SemVer min, SemVer max) : this(min, max, true, true) { }
 
 
         /// <summary>
         /// Construct a new range from a min &amp; max version
         /// </summary>
-        /// <param name="min">The minimum version of a range (&lt;=min)</param>
+        /// <param name="min">The minimum version of a range (&ft;=min)</param>
         /// <param name="max">The maximum version of a range (&lt;=max)</param>
         /// <param name="includeMin">Whether or not to include the minimum version</param>
         /// <param name="includeMax">Whether or not to include the maximum version</param>
@@ -104,7 +90,19 @@ namespace pspm
 
             var opmin = (includeMin == true) ? ">=" : ">";
             var opmax = (includeMax == true) ? "<=" : "<";
-            this.Expression = $"{opmin}{min.ToString()} {opmax}{max.ToString()}";
+
+            if (max == SemVer.Max && includeMax == true)
+            {
+                this.Expression = $"{opmin}{min.ToString()}";
+            }
+            else if (min == SemVer.Min && includeMin == true)
+            {
+                this.Expression = $"{opmax}{max.ToString()}";
+            }
+            else
+            {
+                this.Expression = $"{opmin}{min.ToString()} {opmax}{max.ToString()}";
+            }
 
             this.RangeSet = new SemVerRange[] { this };
         }
