@@ -78,8 +78,8 @@ namespace pspm
         /// <param name="max">The maximum version of a range (&lt;=max)</param>
         public SemVerRange(SemVer min, SemVer max)
         {
-            this.MaximumVersion = min;
-            this.MinimumVersion = max;
+            this.MaximumVersion = max;
+            this.MinimumVersion = min;
             this.IncludeMaximum = true;
             this.IncludeMinimum = true;
             this.Expression = $">={min.ToString()} <={max.ToString()}";
@@ -97,8 +97,8 @@ namespace pspm
         /// <param name="includeMax">Whether or not to include the maximum version</param>
         public SemVerRange(SemVer min, SemVer max, bool includeMin, bool includeMax)
         {
-            this.MaximumVersion = min;
-            this.MinimumVersion = max;
+            this.MaximumVersion = max;
+            this.MinimumVersion = min;
             this.IncludeMaximum = includeMax;
             this.IncludeMinimum = includeMin;
 
