@@ -10,7 +10,6 @@ $DllList = @(
 )
 
 $DllList | ForEach-Object {
-    $private:csharp = Get-Content -Path (Join-Path (Join-Path $modulePath $classPath) $_) -Raw
     Add-Type -Path (Join-Path (Join-Path $modulePath $classPath) $_)
 }
 #endregion Load Class Libraries
