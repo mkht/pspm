@@ -132,21 +132,36 @@ namespace pspm
                 rangeSet.Add(IntersectAll(intersectionSet.ToArray()));
             }
 
-            SemVerRange[] rangeSetArray = rangeSet.ToArray();
-            if (rangeSetArray.Length >= 1)
+            SemVerRange range = _UnionAll(rangeSet.ToArray());
+            this.MinimumVersion = range.MinimumVersion;
+            this.MaximumVersion = range.MaximumVersion;
+            this.IncludeMinimum = range.IncludeMinimum;
+            this.IncludeMaximum = range.IncludeMaximum;
+            this.Expression = range.Expression;
+            this.RangeSet = range.RangeSet;
+        }
+
+        private static SemVerRange _newSemVerRangeSet(params SemVerRange[] ranges)
+        {
+            if (ranges == null || ranges.Length < 1) { throw new ArgumentException(); }
+
+            SemVerRange result = new SemVerRange();
+            if (ranges.Length >= 1)
             {
-                this.MinimumVersion = rangeSetArray[0].MinimumVersion;
-                this.MaximumVersion = rangeSetArray[0].MaximumVersion;
-                this.IncludeMinimum = rangeSetArray[0].IncludeMinimum;
-                this.IncludeMaximum = rangeSetArray[0].IncludeMaximum;
-                this.Expression = rangeSetArray[0].Expression;
-                this.RangeSet = rangeSetArray;
+                result.MinimumVersion = ranges[0].MinimumVersion;
+                result.MaximumVersion = ranges[0].MaximumVersion;
+                result.IncludeMinimum = ranges[0].IncludeMinimum;
+                result.IncludeMaximum = ranges[0].IncludeMaximum;
+                result.Expression = ranges[0].Expression;
+                result.RangeSet = ranges;
             }
 
-            if (rangeSetArray.Length >= 2)
+            if (ranges.Length >= 2)
             {
-                this.Expression = string.Join(" || ", rangeSetArray.Select(e => e.Expression));
+                result.Expression = string.Join(" || ", ranges.Select(e => e.Expression));
             }
+
+            return result;
         }
 
 
@@ -580,6 +595,31 @@ namespace pspm
         /// <exception cref="System.ArgumentNullException">Thrown if both range0 and range1 are null</exception>
         public static SemVerRange Intersect(SemVerRange range0, SemVerRange range1)
         {
+            if (range0 == null && range1 == null) { throw new ArgumentNullException($"Both {nameof(range0)} and {nameof(range1)} are null"); }
+            if (range0 == null) { return range1; }
+            if (range1 == null) { return range0; }
+
+            if (range0.RangeSet.Length == 1 && range1.RangeSet.Length == 1)
+            {
+                return _SingleIntersect(range0, range1);
+            }
+
+            List<SemVerRange> rangeSet = new List<SemVerRange>();
+
+            for (int i = 0; i < range0.RangeSet.Length; i++)
+            {
+                for (int j = 0; j < range1.RangeSet.Length; j++)
+                {
+                    rangeSet.Add(_SingleIntersect(range0.RangeSet[i], range1.RangeSet[j]));
+                }
+            }
+
+            return _UnionAll(rangeSet.ToArray());
+        }
+
+
+        private static SemVerRange _SingleIntersect(SemVerRange range0, SemVerRange range1)
+        {
             if (range0 == null && range1 == null) { throw new ArgumentNullException(); }
             if (range0 == null) { return range1; }
             if (range1 == null) { return range0; }
@@ -695,6 +735,95 @@ namespace pspm
         /// </summary>
         /// <returns>Range expression string</returns>
         public override string ToString() => this.Expression;
+
+
+        private static SemVerRange _Union(SemVerRange range0, SemVerRange range1)
+        {
+            if (range0 == null && range1 == null) { throw new ArgumentNullException(); }
+            if (range0 == null) { return range1; }
+            if (range1 == null) { return range0; }
+
+            // some special cases
+            if (range0.Expression == ">=0.0.0") { return range0; }
+            if (range1.Expression == ">=0.0.0") { return range1; }
+            if (range0.Expression == "<0.0.0") { return range1; }
+            if (range1.Expression == "<0.0.0") { return range0; }
+
+            SemVer newMax = null;
+            SemVer newMin = null;
+            bool newIncludeMax = false;
+            bool newIncludeMin = false;
+
+            SemVerRange higher, lower;
+
+            //sort
+            if (range0.MaximumVersion > range1.MaximumVersion)
+            {
+                higher = range0;
+                lower = range1;
+            }
+            else
+            {
+                higher = range1;
+                lower = range0;
+            }
+
+            // no intersection
+            if (lower.MaximumVersion < higher.MinimumVersion)
+            {
+                return _newSemVerRangeSet(lower, higher);
+            }
+
+            if (lower.MaximumVersion == higher.MinimumVersion)
+            {
+                if (!lower.IncludeMaximum && !higher.IncludeMinimum)
+                {   // no intersection
+                    return _newSemVerRangeSet(lower, higher);
+                }
+            }
+
+            newMax = higher.MaximumVersion;
+            newMin = lower.MinimumVersion;
+            newIncludeMax = higher.IncludeMaximum;
+
+            if (lower.MinimumVersion < higher.MinimumVersion)
+            {
+                newIncludeMin = lower.IncludeMinimum;
+            }
+            else if (lower.MinimumVersion == higher.MinimumVersion)
+            {
+                newIncludeMin = (lower.IncludeMinimum || higher.IncludeMinimum);
+            }
+            else
+            {
+                return higher;
+            }
+
+            return new SemVerRange(newMin, newMax, newIncludeMin, newIncludeMax);
+        }
+
+
+        private static SemVerRange _UnionAll(SemVerRange[] ranges)
+        {
+            if (ranges == null) { throw new ArgumentNullException(); }
+
+            List<SemVerRange> rangeSet = ranges.ToList();
+            rangeSet.OrderBy(r => r.MaximumVersion);
+            for (int i = 0; i < (ranges.Length - 1); i++)
+            {
+                var r = _Union(ranges[i], ranges[i + 1]);
+                if (r.RangeSet.Length == 1)
+                {
+                    ranges[i] = null;
+                    ranges[i + 1] = r;
+                }
+            }
+
+            rangeSet = ranges.ToList();
+            rangeSet.RemoveAll(r => r == null);
+
+            return _newSemVerRangeSet(rangeSet.ToArray());
+        }
     }
     //:------------------------:
     #endregion SemVerRange
