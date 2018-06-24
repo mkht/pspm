@@ -96,7 +96,11 @@ namespace pspm
 
             private set
             {
-                if (value == null || LabelValidator.IsMatch(value))
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    this._PreReleaseLabel = null;
+                }
+                else if (LabelValidator.IsMatch(value))
                 {
                     this._PreReleaseLabel = value;
                 }
@@ -113,7 +117,11 @@ namespace pspm
 
             private set
             {
-                if (value == null || LabelValidator.IsMatch(value))
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    this._BuildLabel = null;
+                }
+                else if (LabelValidator.IsMatch(value))
                 {
                     this._BuildLabel = value;
                 }
@@ -198,7 +206,7 @@ namespace pspm
             string[] numbers = expression.Split(new char[] { '-', '+' })[0].Split('.');
 
             int tMinor, tMajor, tPatch, tRevision;
-            string tPreReleaseLabel = "", tBuildLabel = "";
+            string tPreReleaseLabel = null, tBuildLabel = null;
 
             if (int.TryParse(numbers[0], out tMajor))
             {
