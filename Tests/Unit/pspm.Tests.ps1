@@ -26,15 +26,15 @@ try {
         $ValidPackageJson1 = (
             '{{',
             '  "dependencies": {{',
-            '    "{0}": "{1}"',
+            '    "{0}": "^{1}"',
             '  }}',
             '}}') -join [System.Environment]::NewLine
 
         $ValidPackageJson2 = (
             '{{',
             '  "dependencies": {{',
-            '    "{0}": "{1}",',
-            '    "{2}": "{3}"',
+            '    "{0}": "^{1}",',
+            '    "{2}": "^{3}"',
             '  }}',
             '}}') -join [System.Environment]::NewLine
 
@@ -134,7 +134,7 @@ try {
                         { pspm install $MockModuleName1 -Save } | Should -Not -Throw
 
                         'TestDrive:/package.json' | Should -Exist
-                        'TestDrive:/package.json' | Should -FileContentMatchMultiline ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1)
+                        'TestDrive:/package.json' | Should -FileContentMatchMultiline ([regex]::Escape(($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1)))
                     }
 
                     It 'Update module info in package.json' {
@@ -142,7 +142,7 @@ try {
                         { pspm install $MockModuleName1 -Save } | Should -Not -Throw
 
                         'TestDrive:/package.json' | Should -Exist
-                        'TestDrive:/package.json' | Should -FileContentMatchMultiline ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1)
+                        'TestDrive:/package.json' | Should -FileContentMatchMultiline ([regex]::Escape(($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1)))
                     }
 
                     It 'Add module info in package.json' {
@@ -152,7 +152,7 @@ try {
                         'TestDrive:/package.json' | Should -Exist
                         $packageJson = Get-Content -Path 'TestDrive:/package.json' -Raw | ConvertFrom-Json
                         ($packageJson.dependencies | Get-Member -Type NoteProperty | Measure-Object).Count | Should -Be 2
-                        $packageJson.dependencies.($MockModuleName1) | Should -Be $MockModuleVersion1
+                        $packageJson.dependencies.($MockModuleName1) | Should -Be ('^' + $MockModuleVersion1)
                     }
                 }
             }

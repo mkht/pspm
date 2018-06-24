@@ -256,7 +256,7 @@ function pspm-install {
                         }
                     }
     
-                    $PackageJson.dependencies | Add-Member -NotePropertyName $local:targetModule.Name -NotePropertyValue ([string]$local:targetModule.ModuleVersion) -Force
+                    $PackageJson.dependencies | Add-Member -NotePropertyName $local:targetModule.Name -NotePropertyValue ('^' + [string]$local:targetModule.ModuleVersion) -Force
                     $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $local:CurrentDir '/package.json') -Force -Encoding utf8
                 }
             }
