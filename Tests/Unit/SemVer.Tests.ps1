@@ -25,8 +25,8 @@ try {
                 $semver.Minor | Should -Be 0
                 $semver.Patch | Should -Be 0
                 $semver.Revision | Should -Be 0
-                $semver.PreReleaseLabel | Should BeNullOrEmpty
-                $semver.BuildLabel | Should BeNullOrEmpty
+                $semver.PreReleaseLabel | Should -BeNullOrEmpty
+                $semver.BuildLabel | Should -BeNullOrEmpty
             }
 
             It 'SemVer([int]$major, [int]$minor)' {
