@@ -165,10 +165,10 @@ function getModuleFromPSGallery {
     }
 
     if ($Latest) {
-        $targetModule = $foundModules | sort Version -Descending | select -First 1
+        $targetModule = $foundModules | Sort-Object Version -Descending | Select-Object -First 1
     }
     else {
-        $targetModule = $foundModules | ? {$SemVerRange.IsSatisfied($_.Version)} | sort Version -Descending | select -First 1
+        $targetModule = $foundModules | Where-Object {$SemVerRange.IsSatisfied($_.Version)} | Sort-Object Version -Descending | Select-Object -First 1
     }
 
     if (($targetModule | Measure-Object).count -le 0) {

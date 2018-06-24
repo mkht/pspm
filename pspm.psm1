@@ -9,7 +9,7 @@ $DllList = @(
     '/bin/SemVer.dll'
 )
 
-$DllList | foreach {
+$DllList | ForEach-Object {
     $private:csharp = Get-Content -Path (Join-Path (Join-Path $modulePath $classPath) $_) -Raw
     Add-Type -Path (Join-Path (Join-Path $modulePath $classPath) $_)
 }
@@ -27,7 +27,7 @@ $FunctionList = @(
     'pspm.ps1'
 )
 
-$FunctionList | foreach {
+$FunctionList | ForEach-Object {
     . (Join-Path (Join-Path $modulePath $functionsPath) $_)
 }
 #endregion Load functions
