@@ -89,6 +89,10 @@ try {
                 $semver.PreReleaseLabel | Should -Be 'pre'
                 $semver.BuildLabel | Should -Be 'build'
             }
+
+            It '(SemVer("1.3.0") == SemVer(1, 3, 0)) should True (Issue #44)' {
+                ([pspm.SemVer]::new("1.3.0") -eq [pspm.SemVer]::new(1, 3, 0)) | Should -BeTrue
+            }
         }
 
         Context 'Properties validation test' {
