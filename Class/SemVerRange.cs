@@ -273,7 +273,26 @@ namespace pspm
                     }
                     else
                     {
-                        newver = new SemVer(0, 1, 0);
+                        // All zero pattern 1 (^0 or ^0.x)
+                        if (Regex.IsMatch(escape[0], @"^0(\.[xX\*])?$"))
+                        {
+                            newver = new SemVer(1, 0, 0);
+                        }
+                        // All zero pattern 2 (^0.0 or ^0.0.x)
+                        else if (Regex.IsMatch(escape[0], @"^0\.0(\.[xX\*])?$"))
+                        {
+                            newver = new SemVer(0, 1, 0);
+                        }
+                        // All zero pattern 3 (^0.0.0 or ^0.0.0.x)
+                        else if (Regex.IsMatch(escape[0], @"^0\.0\.0(\.[xX\*])?$"))
+                        {
+                            newver = new SemVer(0, 0, 1);
+                        }
+                        else
+                        {
+                            //parse error
+                            throw new Exception();
+                        }
                     }
 
                     var maxSemVer = newver;
@@ -654,8 +673,8 @@ namespace pspm
             {
                 if (lower.IncludeMaximum && higher.IncludeMinimum)
                 {
-                    newMax = lower.MaximumVersion;
-                    newIncludeMax = true;
+                    // boundary intersection
+                    return new SemVerRange(lower.MaximumVersion.ToString());
                 }
                 else
                 {
@@ -715,10 +734,10 @@ namespace pspm
         /// <code>SemVerRange.IntersectAll(new SemVerRange[]{">1.0.0", "<=2.0.0", "*"});</code>
         /// </example>
         /// <exception cref="System.ArgumentNullException">Thrown when input is null</exception>
-        public static SemVerRange IntersectAll(ICollection<SemVerRange> ranges)
+        public static SemVerRange IntersectAll(params SemVerRange[] ranges)
         {
             if (ranges == null) { throw new ArgumentNullException(); }
-            if (ranges.Count <= 1) { return ranges.FirstOrDefault(); }
+            if (ranges.Length <= 1) { return ranges.FirstOrDefault(); }
 
             SemVerRange ret = null;
             foreach (var r in ranges)
