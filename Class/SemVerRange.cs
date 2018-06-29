@@ -115,6 +115,9 @@ namespace pspm
         /// <exception cref="System.ArgumentException">Thrown when the range expression is invalid or unsupported</exception>
         public SemVerRange(string expression)
         {
+            // next foreach throws exception when expression == "". it's dirty workaround
+            expression = (!string.IsNullOrWhiteSpace(expression)) ? expression : "*";
+
             List<SemVerRange> rangeSet = new List<SemVerRange>();
 
             List<string> allExpressions = Regex.Split(expression.Trim(), @"\|\|").Select(e => e.Trim()).Where(e => !string.IsNullOrEmpty(e)).ToList();
