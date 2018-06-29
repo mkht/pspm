@@ -512,7 +512,7 @@ namespace pspm
         /// <code>SemVerRange.MaxSatisfying(">1.2.3", new SemVer[]{"1.2.0", "1.2.4", "1.2.99"}); // =>returns "1.2.99"</code>
         /// </example>
         /// <exception cref="System.ArgumentNullException">Thrown when parameter is null</exception>
-        public static SemVer MaxSatisfying(SemVerRange range, IEnumerable<SemVer> versions)
+        public static SemVer MaxSatisfying(SemVerRange range, SemVer[] versions)
         {
             if (versions == null || range == null) { throw new ArgumentNullException(); }
 
@@ -535,7 +535,7 @@ namespace pspm
         /// <param name="versions">The list of versions to test</param>
         /// <returns>Returns the highest version in the list that satisfies the range, or null if none of them do</returns>
         /// <exception cref="System.ArgumentNullException">Thrown when parameter is null</exception>
-        public SemVer MaxSatisfying(IEnumerable<SemVer> versions) => MaxSatisfying(this, versions);
+        public SemVer MaxSatisfying(SemVer[] versions) => MaxSatisfying(this, versions);
 
 
         /// <summary>
@@ -548,7 +548,7 @@ namespace pspm
         /// <code>SemVerRange.MinSatisfying(">1.2.3", new Semver[]{"1.2.0", "1.2.4", "1.2.99"}); // =>returns "1.2.4"</code>
         /// </example>
         /// <exception cref="System.ArgumentNullException">Thrown when parameter is null</exception>
-        public static SemVer MinSatisfying(SemVerRange range, IEnumerable<SemVer> versions)
+        public static SemVer MinSatisfying(SemVerRange range, SemVer[] versions)
         {
             if (versions == null || range == null) { throw new ArgumentNullException(); }
 
@@ -570,7 +570,7 @@ namespace pspm
         /// </summary>
         /// <param name="versions">The list of versions to test</param>
         /// <returns>Returns the lowest version in the list that satisfies the range, or null if none of them do</returns>
-        public SemVer MinSatisfying(IEnumerable<SemVer> versions) => MinSatisfying(this, versions);
+        public SemVer MinSatisfying(SemVer[] versions) => MinSatisfying(this, versions);
 
 
         /// <summary>
@@ -582,7 +582,7 @@ namespace pspm
         /// <example>
         /// <code>SemVerRange.Satisfying(">1.2.3", new SemVer[]{"1.2.0", "1.2.4", "1.2.99"}); // =>returns {"1.2.4", "1.2.9"}</code>
         /// </example>
-        public static IEnumerable<SemVer> Satisfying(SemVerRange range, IEnumerable<SemVer> versions)
+        public static SemVer[] Satisfying(SemVerRange range, SemVer[] versions)
         {
             return versions.Where(v => range.IsSatisfied(v)).ToArray();
         }
@@ -593,7 +593,7 @@ namespace pspm
         /// </summary>
         /// <param name="versions">The list of versions to test</param>
         /// <returns>Returns all versions in the list that satisfies the range, or empty array if none of them do</returns>
-        public IEnumerable<SemVer> Satisfying(IEnumerable<SemVer> versions) => Satisfying(this, versions);
+        public SemVer[] Satisfying(SemVer[] versions) => Satisfying(this, versions);
 
 
         /// <summary>
