@@ -161,7 +161,7 @@ try {
 
             Context 'X-Ranges' {
 
-                It '"1.2.x" := >=1.2.0 <1.3.0)' {
+                It '"1.2.x" := >=1.2.0 <1.3.0' {
                     $range = [pspm.SemVerRange]::new('1.2.x')
                     $range.MaximumVersion | Should -Be ([pspm.SemVer]::new(1, 3, 0))
                     $range.MinimumVersion | Should -Be ([pspm.SemVer]::new(1, 2, 0))
@@ -170,7 +170,7 @@ try {
                     $range.Expression | Should -Be '>=1.2.0 <1.3.0'
                 }
 
-                It '"1.X" := >=1.0.0 <2.0.0)' {
+                It '"1.X" := >=1.0.0 <2.0.0' {
                     $range = [pspm.SemVerRange]::new('1.X')
                     $range.MaximumVersion | Should -Be ([pspm.SemVer]::new(2, 0, 0))
                     $range.MinimumVersion | Should -Be ([pspm.SemVer]::new(1, 0, 0))
@@ -179,7 +179,7 @@ try {
                     $range.Expression | Should -Be '>=1.0.0 <2.0.0'
                 }
 
-                It '"1.2.*" := >=1.0.0 <2.0.0)' {
+                It '"1.2.*" := >=1.0.0 <2.0.0' {
                     $range = [pspm.SemVerRange]::new('1.2.*')
                     $range.Expression | Should -Be '>=1.2.0 <1.3.0'
                 }
@@ -187,7 +187,7 @@ try {
 
             Context 'Partial range (treated as X-Range)' {
 
-                It '"1" := 1.x.x := >=1.0.0 <2.0.0)' {
+                It '"1" := 1.x.x := >=1.0.0 <2.0.0' {
                     $range = [pspm.SemVerRange]::new('1')
                     $range.MaximumVersion | Should -Be ([pspm.SemVer]::new(2, 0, 0))
                     $range.MinimumVersion | Should -Be ([pspm.SemVer]::new(1, 0, 0))
@@ -196,7 +196,7 @@ try {
                     $range.Expression | Should -Be '>=1.0.0 <2.0.0'
                 }
 
-                It '"1.2" := 1.2.x := >=1.2.0 <1.3.0)' {
+                It '"1.2" := 1.2.x := >=1.2.0 <1.3.0' {
                     $range = [pspm.SemVerRange]::new('1.2')
                     $range.Expression | Should -Be '>=1.2.0 <1.3.0'
                 }
@@ -204,7 +204,7 @@ try {
 
             Context 'Tilde Ranges' {
 
-                It '"~0.2" := 0.2.x := >=0.2.0 <0.3.0)' {
+                It '"~0.2" := 0.2.x := >=0.2.0 <0.3.0' {
                     $range = [pspm.SemVerRange]::new('~0.2')
                     $range.MaximumVersion | Should -Be ([pspm.SemVer]::new(0, 3, 0))
                     $range.MinimumVersion | Should -Be ([pspm.SemVer]::new(0, 2, 0))
@@ -213,7 +213,7 @@ try {
                     $range.Expression | Should -Be '>=0.2.0 <0.3.0'
                 }
 
-                It '"~0.2.3" := >=0.2.3 <0.3.0)' {
+                It '"~0.2.3" := >=0.2.3 <0.3.0' {
                     $range = [pspm.SemVerRange]::new('~0.2.3')
                     $range.MaximumVersion | Should -Be ([pspm.SemVer]::new(0, 3, 0))
                     $range.MinimumVersion | Should -Be ([pspm.SemVer]::new(0, 2, 3))
@@ -222,7 +222,7 @@ try {
                     $range.Expression | Should -Be '>=0.2.3 <0.3.0'
                 }
 
-                It '"~1.2.3-beta.2" := >=1.2.3-beta.2 <1.3.0)' {
+                It '"~1.2.3-beta.2" := >=1.2.3-beta.2 <1.3.0' {
                     $range = [pspm.SemVerRange]::new('~1.2.3-beta.2')
                     $range.Expression | Should -Be '>=1.2.3-beta.2 <1.3.0'
                 }
@@ -230,7 +230,7 @@ try {
 
             Context 'Caret Ranges' {
 
-                It '"^1.2.3" := >=1.2.3 <2.0.0)' {
+                It '"^1.2.3" := >=1.2.3 <2.0.0' {
                     $range = [pspm.SemVerRange]::new('^1.2.3')
                     $range.MaximumVersion | Should -Be ([pspm.SemVer]::new(2, 0, 0))
                     $range.MinimumVersion | Should -Be ([pspm.SemVer]::new(1, 2, 3))
@@ -239,27 +239,27 @@ try {
                     $range.Expression | Should -Be '>=1.2.3 <2.0.0'
                 }
 
-                It '"^0.2.3" := >=0.2.3 <0.3.0)' {
+                It '"^0.2.3" := >=0.2.3 <0.3.0' {
                     $range = [pspm.SemVerRange]::new('^0.2.3')
                     $range.Expression | Should -Be '>=0.2.3 <0.3.0'
                 }
 
-                It '"^0.0.3" := >=0.0.3 <0.0.4)' {
+                It '"^0.0.3" := >=0.0.3 <0.0.4' {
                     $range = [pspm.SemVerRange]::new('^0.0.3')
                     $range.Expression | Should -Be '>=0.0.3 <0.0.4'
                 }
 
-                It '"^1.2.3-beta.2" := >=1.2.3-beta.2 <2.0.0)' {
+                It '"^1.2.3-beta.2" := >=1.2.3-beta.2 <2.0.0' {
                     $range = [pspm.SemVerRange]::new('^1.2.3-beta.2')
                     $range.Expression | Should -Be '>=1.2.3-beta.2 <2.0.0'
                 }
 
-                It '"^0.0.x" := >=0.0.0 <0.1.0)' {
+                It '"^0.0.x" := >=0.0.0 <0.1.0' {
                     $range = [pspm.SemVerRange]::new('^0.0.x')
                     $range.Expression | Should -Be '>=0.0.0 <0.1.0'
                 }
 
-                It '"^0" := >=0.0.0 <1.0.0)' {
+                It '"^0" := >=0.0.0 <1.0.0' {
                     $range = [pspm.SemVerRange]::new('^0')
                     $range.Expression | Should -Be '>=0.0.0 <1.0.0'
                 }
