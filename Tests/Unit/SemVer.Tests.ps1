@@ -246,6 +246,18 @@ try {
                 $semver.BuildLabel | Should -Be 'build'
             }
 
+            It 'Ignore first "=" & "v"' {
+                $semver1 = [pspm.SemVer]::Parse('=1.2.3')  #same as 1.2.3
+                $semver1.Major | Should -Be 1
+                $semver1.Minor | Should -Be 2
+                $semver1.Patch | Should -Be 3
+
+                $semver2 = [pspm.SemVer]::Parse('vV=vVv=vv==1.2.3')  #same as 1.2.3
+                $semver2.Major | Should -Be 1
+                $semver2.Minor | Should -Be 2
+                $semver2.Patch | Should -Be 3
+            }
+
             It 'Invalid format should throw exception' {
                 {[pspm.SemVer]::Parse('foo@bar')} |Should -Throw
             }

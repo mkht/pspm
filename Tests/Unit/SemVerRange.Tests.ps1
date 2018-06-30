@@ -87,8 +87,8 @@ try {
                     $range.Expression | Should -Be '1.0.0'
                 }
 
-                It 'Strict range ("=1.0.0")' {
-                    $range = [pspm.SemVerRange]::new('=1.0.0')
+                It 'Strict range with leading "=vV" ("=vV1.0.0")' {
+                    $range = [pspm.SemVerRange]::new('=vV1.0.0')
                     $range.Expression | Should -Be '1.0.0'
                 }
 
@@ -157,6 +157,11 @@ try {
                     $range.IncludeMinimum | Should -Be $true
                     $range.Expression | Should -Be '>=1.2.3 <3.0.0'
                 }
+
+                It '"=vV1.2.3 - =vV2.3.4" := >=1.2.3 <=2.3.4 (with leading ignore chars)' {
+                    $range = [pspm.SemVerRange]::new('=vV1.2.3 - =vV2.3.4')
+                    $range.Expression | Should -Be '>=1.2.3 <=2.3.4'
+                }
             }
 
             Context 'X-Ranges' {
@@ -183,6 +188,11 @@ try {
                     $range = [pspm.SemVerRange]::new('1.2.*')
                     $range.Expression | Should -Be '>=1.2.0 <1.3.0'
                 }
+
+                It '"vV=1.2.*" := >=1.0.0 <2.0.0 (with leading ignore chars)' {
+                    $range = [pspm.SemVerRange]::new('vV=1.2.*')
+                    $range.Expression | Should -Be '>=1.2.0 <1.3.0'
+                }
             }
 
             Context 'Partial range (treated as X-Range)' {
@@ -198,6 +208,11 @@ try {
 
                 It '"1.2" := 1.2.x := >=1.2.0 <1.3.0' {
                     $range = [pspm.SemVerRange]::new('1.2')
+                    $range.Expression | Should -Be '>=1.2.0 <1.3.0'
+                }
+
+                It '"=vV1.2" (with leading ignore chars)' {
+                    $range = [pspm.SemVerRange]::new('=vV1.2')
                     $range.Expression | Should -Be '>=1.2.0 <1.3.0'
                 }
             }
@@ -225,6 +240,11 @@ try {
                 It '"~1.2.3-beta.2" := >=1.2.3-beta.2 <1.3.0' {
                     $range = [pspm.SemVerRange]::new('~1.2.3-beta.2')
                     $range.Expression | Should -Be '>=1.2.3-beta.2 <1.3.0'
+                }
+
+                It '"~=vV0.2" (with leading ignore chars)' {
+                    $range = [pspm.SemVerRange]::new('~=vV0.2')
+                    $range.Expression | Should -Be '>=0.2.0 <0.3.0'
                 }
             }
 
@@ -262,6 +282,11 @@ try {
                 It '"^0" := >=0.0.0 <1.0.0' {
                     $range = [pspm.SemVerRange]::new('^0')
                     $range.Expression | Should -Be '>=0.0.0 <1.0.0'
+                }
+
+                It '"^=Vv0.2.3"  (with leading ignore chars)' {
+                    $range = [pspm.SemVerRange]::new('^=Vv0.2.3')
+                    $range.Expression | Should -Be '>=0.2.3 <0.3.0'
                 }
             }
 

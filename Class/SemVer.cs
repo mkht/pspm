@@ -202,6 +202,10 @@ namespace pspm
         // Parse()
         public static SemVer Parse(string expression)
         {
+            //Ignore first "=" or "v" e.g) v=1.0.0 -> 1.0.0
+            var p = new Regex(@"^[=v]+", RegexOptions.IgnoreCase);
+            expression = (p.IsMatch(expression)) ? p.Replace(expression, string.Empty) : expression;
+
             //split major.minor.patch
             string[] numbers = expression.Split(new char[] { '-', '+' })[0].Split('.');
 

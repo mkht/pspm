@@ -193,8 +193,8 @@ namespace pspm
                 string first = a[0];
                 string second = a[1];
 
-                Regex valid = new Regex(@"^\d+(\.\d+){0,3}$");
-                Regex partial = new Regex(@"^\d+(\.\d+)?$");
+                Regex valid = new Regex(@"^[=vV]*\d+(\.\d+){0,3}$");
+                Regex partial = new Regex(@"^[=vV]*\d+(\.\d+)?$");
 
                 if (!valid.IsMatch(first) || !valid.IsMatch(second))
                 {
@@ -224,7 +224,7 @@ namespace pspm
             }
 
             // X-Ranges (1.x, 1.2.x, 1.2.*)
-            else if (Regex.IsMatch(expression, @"^\d+(\.\d+)?\.[x\*]", RegexOptions.IgnoreCase))
+            else if (Regex.IsMatch(expression, @"^[=vV]*\d+(\.\d+)?\.[x\*]", RegexOptions.IgnoreCase))
             {
                 var regex = new Regex(@"\d+(?=\.[x\*])", RegexOptions.IgnoreCase);
 
@@ -232,7 +232,7 @@ namespace pspm
             }
 
             // Partial range (1, 1.2)
-            else if (Regex.IsMatch(expression, @"^\d+(\.\d+)?$", RegexOptions.IgnoreCase))
+            else if (Regex.IsMatch(expression, @"^[=vV]*\d+(\.\d+)?$", RegexOptions.IgnoreCase))
             {
                 string newexp = expression + ".x";  //treat as X-Range
                 var regex = new Regex(@"\d+(?=\.x)", RegexOptions.IgnoreCase);
@@ -251,7 +251,7 @@ namespace pspm
             else if (expression.StartsWith("~"))
             {
                 // Tilde pattern 1 (~1, ~1.2)
-                if (Regex.IsMatch(expression, @"^~\d+(\.\d+)?$", RegexOptions.IgnoreCase))
+                if (Regex.IsMatch(expression, @"^~[=vV]*\d+(\.\d+)?$", RegexOptions.IgnoreCase))
                 {
                     var newexp = expression.Substring(1) + ".x";    // treat as X-Range
                     var regex = new Regex(@"\d+(?=\.x)", RegexOptions.IgnoreCase);
@@ -314,17 +314,17 @@ namespace pspm
                     else
                     {
                         // All zero pattern 1 (^0 or ^0.x)
-                        if (Regex.IsMatch(escape[0], @"^0(\.[xX\*])?$"))
+                        if (Regex.IsMatch(escape[0], @"^[=vV]*0(\.[xX\*])?$"))
                         {
                             newver = new SemVer(1, 0, 0);
                         }
                         // All zero pattern 2 (^0.0 or ^0.0.x)
-                        else if (Regex.IsMatch(escape[0], @"^0\.0(\.[xX\*])?$"))
+                        else if (Regex.IsMatch(escape[0], @"^[=vV]*0\.0(\.[xX\*])?$"))
                         {
                             newver = new SemVer(0, 1, 0);
                         }
                         // All zero pattern 3 (^0.0.0 or ^0.0.0.x)
-                        else if (Regex.IsMatch(escape[0], @"^0\.0\.0(\.[xX\*])?$"))
+                        else if (Regex.IsMatch(escape[0], @"^[=vV]*0\.0\.0(\.[xX\*])?$"))
                         {
                             newver = new SemVer(0, 0, 1);
                         }
@@ -429,9 +429,7 @@ namespace pspm
             // Strict
             else
             {
-                var tmp = expression.StartsWith("=") ? expression.Substring(1) : expression;
-
-                if (SemVer.TryParse(tmp, out SemVer tmpVer))
+                if (SemVer.TryParse(expression, out SemVer tmpVer))
                 {
                     range.MaximumVersion = tmpVer;
                     range.MinimumVersion = tmpVer;
