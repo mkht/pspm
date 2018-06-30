@@ -24,7 +24,10 @@
     PowerShellVersion = '5.0'
 
     # Functions to export from this module
-    FunctionsToExport = 'pspm'
+    FunctionsToExport = @('pspm')
+
+    # Format files (.ps1xml) to be loaded when importing this module.
+    FormatsToProcess  = @('./Class/pspm.SemVer.format.ps1xml')
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData       = @{
