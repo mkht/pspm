@@ -487,11 +487,11 @@ namespace pspm
         /// <summary>
         /// Test whether the given version satisfies this range
         /// </summary>
-        /// <param name="range">The range for test</param>
         /// <param name="version">The version to test</param>
+        /// <param name="range">The range for test</param>
         /// <returns>Return true if the version satisfies the range</returns>
         /// <exception cref="System.ArgumentNullException">Thrown when parameter is null</exception>
-        public static bool IsSatisfied(SemVerRange range, SemVer version)
+        public static bool IsSatisfied(SemVer version, SemVerRange range)
         {
             if (range == null || version == null) { throw new ArgumentNullException(); }
 
@@ -539,20 +539,20 @@ namespace pspm
         /// <param name="version">The version to test</param>
         /// <returns>Return true if the version satisfies the range</returns>
         /// <exception cref="System.ArgumentNullException">Thrown when parameter is null</exception>
-        public bool IsSatisfied(SemVer version) => IsSatisfied(this, version);
+        public bool IsSatisfied(SemVer version) => IsSatisfied(version, this);
 
 
         /// <summary>
         /// Get the highest version in the list that satisfies given range
         /// </summary>
-        /// <param name="range">The range for test</param>
         /// <param name="versions">The list of versions to test</param>
+        /// <param name="range">The range for test</param>
         /// <returns>Returns the highest version in the list that satisfies the range, or null if none of them do</returns>
         /// <example>
-        /// <code>SemVerRange.MaxSatisfying(">1.2.3", new SemVer[]{"1.2.0", "1.2.4", "1.2.99"}); // =>returns "1.2.99"</code>
+        /// <code>SemVerRange.MaxSatisfying(new SemVer[]{"1.2.0", "1.2.4", "1.2.99"}, ">1.2.3"); // =>returns "1.2.99"</code>
         /// </example>
         /// <exception cref="System.ArgumentNullException">Thrown when parameter is null</exception>
-        public static SemVer MaxSatisfying(SemVerRange range, SemVer[] versions)
+        public static SemVer MaxSatisfying(SemVer[] versions, SemVerRange range)
         {
             if (versions == null || range == null) { throw new ArgumentNullException(); }
 
@@ -575,20 +575,20 @@ namespace pspm
         /// <param name="versions">The list of versions to test</param>
         /// <returns>Returns the highest version in the list that satisfies the range, or null if none of them do</returns>
         /// <exception cref="System.ArgumentNullException">Thrown when parameter is null</exception>
-        public SemVer MaxSatisfying(SemVer[] versions) => MaxSatisfying(this, versions);
+        public SemVer MaxSatisfying(SemVer[] versions) => MaxSatisfying(versions, this);
 
 
         /// <summary>
         /// Get the lowest version in the list that satisfies given range
         /// </summary>
-        /// <param name="range">The range for test</param>
         /// <param name="versions">The list of versions to test</param>
+        /// <param name="range">The range for test</param>
         /// <returns>Returns the lowest version in the list that satisfies the range, or null if none of them do</returns>
         /// <example>
-        /// <code>SemVerRange.MinSatisfying(">1.2.3", new Semver[]{"1.2.0", "1.2.4", "1.2.99"}); // =>returns "1.2.4"</code>
+        /// <code>SemVerRange.MinSatisfying(new Semver[]{"1.2.0", "1.2.4", "1.2.99"}, ">1.2.3"); // =>returns "1.2.4"</code>
         /// </example>
         /// <exception cref="System.ArgumentNullException">Thrown when parameter is null</exception>
-        public static SemVer MinSatisfying(SemVerRange range, SemVer[] versions)
+        public static SemVer MinSatisfying(SemVer[] versions, SemVerRange range)
         {
             if (versions == null || range == null) { throw new ArgumentNullException(); }
 
@@ -610,19 +610,19 @@ namespace pspm
         /// </summary>
         /// <param name="versions">The list of versions to test</param>
         /// <returns>Returns the lowest version in the list that satisfies the range, or null if none of them do</returns>
-        public SemVer MinSatisfying(SemVer[] versions) => MinSatisfying(this, versions);
+        public SemVer MinSatisfying(SemVer[] versions) => MinSatisfying(versions, this);
 
 
         /// <summary>
         /// Get all versions in the list that satisfies the given range
         /// </summary>
-        /// <param name="range">The range for test</param>
         /// <param name="versions">The list of versions to test</param>
+        /// <param name="range">The range for test</param>
         /// <returns>Returns all versions in the list that satisfies the range, or empty array if none of them do</returns>
         /// <example>
-        /// <code>SemVerRange.Satisfying(">1.2.3", new SemVer[]{"1.2.0", "1.2.4", "1.2.99"}); // =>returns {"1.2.4", "1.2.9"}</code>
+        /// <code>SemVerRange.Satisfying(new SemVer[]{"1.2.0", "1.2.4", "1.2.99"}, ">1.2.3"); // =>returns {"1.2.4", "1.2.9"}</code>
         /// </example>
-        public static SemVer[] Satisfying(SemVerRange range, SemVer[] versions)
+        public static SemVer[] Satisfying(SemVer[] versions, SemVerRange range)
         {
             return versions.Where(v => range.IsSatisfied(v)).ToArray();
         }
@@ -633,7 +633,7 @@ namespace pspm
         /// </summary>
         /// <param name="versions">The list of versions to test</param>
         /// <returns>Returns all versions in the list that satisfies the range, or empty array if none of them do</returns>
-        public SemVer[] Satisfying(SemVer[] versions) => Satisfying(this, versions);
+        public SemVer[] Satisfying(SemVer[] versions) => Satisfying(versions, this);
 
 
         /// <summary>

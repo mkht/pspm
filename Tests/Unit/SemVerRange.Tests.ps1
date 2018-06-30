@@ -374,77 +374,77 @@ try {
             }
 
             It '"1.0.0" is satisfied "=1.0.0"' {
-                [pspm.SemVerRange]::IsSatisfied('=1.0.0', '1.0.0') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.0.0', '=1.0.0') | Should -BeTrue
             }
 
             It '"1.0.0" is not satisfied "=2.0.0"' {
-                [pspm.SemVerRange]::IsSatisfied('=2.0.0', '1.0.0') | Should -Not -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.0.0', '=2.0.0') | Should -Not -BeTrue
             }
 
             It '"1.0.0" is satisfied ">0.1.0"' {
-                [pspm.SemVerRange]::IsSatisfied('>0.1.0', '1.0.0') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.0.0', '>0.1.0') | Should -BeTrue
             }
 
             It '"1.0.0" is not satisfied ">1.0.0"' {
-                [pspm.SemVerRange]::IsSatisfied('>1.0.0', '1.0.0') | Should  -Not -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.0.0', '>1.0.0') | Should  -Not -BeTrue
             }
 
             It '"1.0.0" is satisfied ">=1.0.0"' {
-                [pspm.SemVerRange]::IsSatisfied('>=1.0.0', '1.0.0') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.0.0', '>=1.0.0') | Should -BeTrue
             }
 
             It '"1.0.0" is satisfied "<2.0.0"' {
-                [pspm.SemVerRange]::IsSatisfied('<2.0.0', '1.0.0') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.0.0', '<2.0.0') | Should -BeTrue
             }
 
             It '"1.0.0" is satisfied "<=1.0.0"' {
-                [pspm.SemVerRange]::IsSatisfied('<=1.0.0', '1.0.0') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.0.0', '<=1.0.0') | Should -BeTrue
             }
 
             It '"1.0.0" is not satisfied "<1.0.0"' {
-                [pspm.SemVerRange]::IsSatisfied('<1.0.0', '1.0.0') | Should -Not -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.0.0', '<1.0.0') | Should -Not -BeTrue
             }
 
             It '"0.5.0" is satisfied ">=0.1.0 <=1.0.0"' {
-                [pspm.SemVerRange]::IsSatisfied('>=0.1.0 <=1.0.0', '0.5.0') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('0.5.0', '>=0.1.0 <=1.0.0') | Should -BeTrue
             }
 
             It '"1.5.0" is not satisfied ">=0.1.0 <=1.0.0"' {
-                [pspm.SemVerRange]::IsSatisfied('>=0.1.0 <=1.0.0', '1.5.0') | Should -Not -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.5.0', '>=0.1.0 <=1.0.0') | Should -Not -BeTrue
             }
 
             It '"1.2.3" is satisfied "1.0.0 - 1.3.0" (Hyphen ranges)' {
-                [pspm.SemVerRange]::IsSatisfied('1.0.0 - 1.3.0', '1.2.3') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.2.3', '1.0.0 - 1.3.0') | Should -BeTrue
             }
 
             It '"1.2.3" is satisfied "1.x" (X-ranges)' {
-                [pspm.SemVerRange]::IsSatisfied('1.x', '1.2.3') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.2.3', '1.x') | Should -BeTrue
             }
 
             It '"0.2.99" is satisfied "~0.2.3" (Tilde pattern 2)' {
-                [pspm.SemVerRange]::IsSatisfied('~0.2.3', '0.2.99') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('0.2.99', '~0.2.3') | Should -BeTrue
             }
 
             It '"1.2.99" is satisfied "^1.2.3" (Caret ranges)' {
-                [pspm.SemVerRange]::IsSatisfied('^1.2.3', '1.2.99') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.2.99', '^1.2.3') | Should -BeTrue
             }
 
             It '"1.0.0" is satisfied "1.0.0 || 2.0.0" (Union sets)' {
-                [pspm.SemVerRange]::IsSatisfied('1.0.0 || 2.0.0', '1.0.0') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.0.0', '1.0.0 || 2.0.0') | Should -BeTrue
             }
 
             It '"3.0.0" is not satisfied "1.0.0 || 2.0.0" (Union sets)' {
-                [pspm.SemVerRange]::IsSatisfied('1.0.0 || 2.0.0', '3.0.0') | Should -Not -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('3.0.0', '1.0.0 || 2.0.0') | Should -Not -BeTrue
             }
 
             It 'The range "1.2.7 || >=1.2.9 <2.0.0" would match the versions "1.2.7", "1.2.9", and "1.4.6", but not the versions "1.2.8" or "2.0.0"' {
                 # complicated example from https://docs.npmjs.com/misc/semver#ranges
                 $range = [pspm.SemVerRange]::new("1.2.7 || >=1.2.9 <2.0.0")
-                [pspm.SemVerRange]::IsSatisfied($range, '1.2.7') | Should -BeTrue
-                [pspm.SemVerRange]::IsSatisfied($range, '1.2.9') | Should -BeTrue
-                [pspm.SemVerRange]::IsSatisfied($range, '1.4.6') | Should -BeTrue
-                [pspm.SemVerRange]::IsSatisfied($range, '1.2.8') | Should -Not -BeTrue
-                [pspm.SemVerRange]::IsSatisfied($range, '2.0.0') | Should -Not -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.2.7', $range) | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.2.9', $range) | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.4.6', $range) | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.2.8', $range) | Should -Not -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('2.0.0', $range) | Should -Not -BeTrue
             }
 
             It 'non static IsSatisfied()' {
@@ -461,16 +461,16 @@ try {
                 { [pspm.SemVerRange]::MaxSatisfying('1.0.0', $null) } | Should -Throw
             }
 
-            It 'MaxSatisfying(">1.2.3", @("1.2.0", "1.2.4", "1.2.99")) returns "1.2.99"' {
-                [pspm.SemVerRange]::MaxSatisfying(">1.2.3", @("1.2.0", "1.2.4", "1.2.99")) | Should -Be '1.2.99'
+            It 'MaxSatisfying(@("1.2.0", "1.2.4", "1.2.99"), ">1.2.3") returns "1.2.99"' {
+                [pspm.SemVerRange]::MaxSatisfying(@("1.2.0", "1.2.4", "1.2.99"), ">1.2.3") | Should -Be '1.2.99'
             }
 
-            It 'MaxSatisfying(">1.2.3 <1.2.10", @("1.2.0", "1.2.4", "1.2.99")) returns "1.2.4"' {
-                [pspm.SemVerRange]::MaxSatisfying(">1.2.3 <1.2.10", @("1.2.0", "1.2.4", "1.2.99")) | Should -Be '1.2.4'
+            It 'MaxSatisfying(@("1.2.0", "1.2.4", "1.2.99"), ">1.2.3 <1.2.10") returns "1.2.4"' {
+                [pspm.SemVerRange]::MaxSatisfying(@("1.2.0", "1.2.4", "1.2.99"), ">1.2.3 <1.2.10") | Should -Be '1.2.4'
             }
 
-            It 'MaxSatisfying(">1.0.0", @("0.2.0", "0.9.0")) returns null' {
-                [pspm.SemVerRange]::MaxSatisfying(">1.0.0", @("0.2.0", "0.9.0")) | Should -BeNullOrEmpty
+            It 'MaxSatisfying(@("0.2.0", "0.9.0"), ">1.0.0") returns null' {
+                [pspm.SemVerRange]::MaxSatisfying(@("0.2.0", "0.9.0"), ">1.0.0") | Should -BeNullOrEmpty
             }
 
             It 'non static MaxSatisfying()' {
@@ -487,12 +487,12 @@ try {
                 { [pspm.SemVerRange]::MinSatisfying('1.0.0', $null) } | Should -Throw
             }
 
-            It 'MinSatisfying(">1.2.3", @("1.2.0", "1.2.4", "1.2.99")) returns "1.2.4"' {
-                [pspm.SemVerRange]::MinSatisfying(">1.2.3", @("1.2.0", "1.2.4", "1.2.99")) | Should -Be '1.2.4'
+            It 'MinSatisfying(@("1.2.0", "1.2.4", "1.2.99"), ">1.2.3") returns "1.2.4"' {
+                [pspm.SemVerRange]::MinSatisfying(@("1.2.0", "1.2.4", "1.2.99"), ">1.2.3") | Should -Be '1.2.4'
             }
 
-            It 'MinSatisfying(">1.0.0", @("0.2.0", "0.9.0")) returns null' {
-                [pspm.SemVerRange]::MinSatisfying(">1.0.0", @("0.2.0", "0.9.0")) | Should -BeNullOrEmpty
+            It 'MinSatisfying(@("0.2.0", "0.9.0"), ">1.0.0") returns null' {
+                [pspm.SemVerRange]::MinSatisfying(@("0.2.0", "0.9.0"), ">1.0.0") | Should -BeNullOrEmpty
             }
 
             It 'non static MinSatisfying()' {
@@ -504,15 +504,15 @@ try {
 
         Context 'Satisfying()' {
 
-            It 'Satisfying(">1.2.3", @("1.2.0", "1.2.4", "1.2.99")) returns 1.2.4 & 1.2.99' {
-                $result = [pspm.SemVerRange]::Satisfying(">1.2.3", @("1.2.0", "1.2.4", "1.2.99"))
+            It 'Satisfying(@("1.2.0", "1.2.4", "1.2.99"), ">1.2.3") returns 1.2.4 & 1.2.99' {
+                $result = [pspm.SemVerRange]::Satisfying(@("1.2.0", "1.2.4", "1.2.99"), ">1.2.3")
                 $result | Should -HaveCount 2
                 $result | Should -Contain '1.2.4'
                 $result | Should -Contain '1.2.99'
             }
 
-            It 'Satisfying(">1.0.0", @("0.2.0", "0.9.0")) returns empty array' {
-                $result = [pspm.SemVerRange]::Satisfying(">1.0.0", @("0.2.0", "0.9.0"))
+            It 'Satisfying(@("0.2.0", "0.9.0"), ">1.0.0") returns empty array' {
+                $result = [pspm.SemVerRange]::Satisfying(@("0.2.0", "0.9.0"), ">1.0.0")
                 ($null -eq $result) | Should -Not -BeTrue   #should not return null
                 $result | Should -HaveCount 0
             }
