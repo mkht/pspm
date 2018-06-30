@@ -115,6 +115,9 @@ namespace pspm
         /// <exception cref="System.ArgumentException">Thrown when the range expression is invalid or unsupported</exception>
         public SemVerRange(string expression)
         {
+            // next foreach throws exception when expression == "". it's dirty workaround
+            expression = (!string.IsNullOrWhiteSpace(expression)) ? expression : "*";
+
             List<SemVerRange> rangeSet = new List<SemVerRange>();
 
             List<string> allExpressions = Regex.Split(expression.Trim(), @"\|\|").Select(e => e.Trim()).Where(e => !string.IsNullOrEmpty(e)).ToList();
@@ -132,21 +135,36 @@ namespace pspm
                 rangeSet.Add(IntersectAll(intersectionSet.ToArray()));
             }
 
-            SemVerRange[] rangeSetArray = rangeSet.ToArray();
-            if (rangeSetArray.Length >= 1)
+            SemVerRange range = _UnionAll(rangeSet.ToArray());
+            this.MinimumVersion = range.MinimumVersion;
+            this.MaximumVersion = range.MaximumVersion;
+            this.IncludeMinimum = range.IncludeMinimum;
+            this.IncludeMaximum = range.IncludeMaximum;
+            this.Expression = range.Expression;
+            this.RangeSet = range.RangeSet;
+        }
+
+        private static SemVerRange _newSemVerRangeSet(params SemVerRange[] ranges)
+        {
+            if (ranges == null || ranges.Length < 1) { throw new ArgumentException(); }
+
+            SemVerRange result = new SemVerRange();
+            if (ranges.Length >= 1)
             {
-                this.MinimumVersion = rangeSetArray[0].MinimumVersion;
-                this.MaximumVersion = rangeSetArray[0].MaximumVersion;
-                this.IncludeMinimum = rangeSetArray[0].IncludeMinimum;
-                this.IncludeMaximum = rangeSetArray[0].IncludeMaximum;
-                this.Expression = rangeSetArray[0].Expression;
-                this.RangeSet = rangeSetArray;
+                result.MinimumVersion = ranges[0].MinimumVersion;
+                result.MaximumVersion = ranges[0].MaximumVersion;
+                result.IncludeMinimum = ranges[0].IncludeMinimum;
+                result.IncludeMaximum = ranges[0].IncludeMaximum;
+                result.Expression = ranges[0].Expression;
+                result.RangeSet = ranges;
             }
 
-            if (rangeSetArray.Length >= 2)
+            if (ranges.Length >= 2)
             {
-                this.Expression = string.Join(" || ", rangeSetArray.Select(e => e.Expression));
+                result.Expression = string.Join(" || ", ranges.Select(e => e.Expression));
             }
+
+            return result;
         }
 
 
@@ -258,7 +276,26 @@ namespace pspm
                     }
                     else
                     {
-                        newver = new SemVer(0, 1, 0);
+                        // All zero pattern 1 (^0 or ^0.x)
+                        if (Regex.IsMatch(escape[0], @"^0(\.[xX\*])?$"))
+                        {
+                            newver = new SemVer(1, 0, 0);
+                        }
+                        // All zero pattern 2 (^0.0 or ^0.0.x)
+                        else if (Regex.IsMatch(escape[0], @"^0\.0(\.[xX\*])?$"))
+                        {
+                            newver = new SemVer(0, 1, 0);
+                        }
+                        // All zero pattern 3 (^0.0.0 or ^0.0.0.x)
+                        else if (Regex.IsMatch(escape[0], @"^0\.0\.0(\.[xX\*])?$"))
+                        {
+                            newver = new SemVer(0, 0, 1);
+                        }
+                        else
+                        {
+                            //parse error
+                            throw new Exception();
+                        }
                     }
 
                     var maxSemVer = newver;
@@ -478,7 +515,7 @@ namespace pspm
         /// <code>SemVerRange.MaxSatisfying(">1.2.3", new SemVer[]{"1.2.0", "1.2.4", "1.2.99"}); // =>returns "1.2.99"</code>
         /// </example>
         /// <exception cref="System.ArgumentNullException">Thrown when parameter is null</exception>
-        public static SemVer MaxSatisfying(SemVerRange range, IEnumerable<SemVer> versions)
+        public static SemVer MaxSatisfying(SemVerRange range, SemVer[] versions)
         {
             if (versions == null || range == null) { throw new ArgumentNullException(); }
 
@@ -501,7 +538,7 @@ namespace pspm
         /// <param name="versions">The list of versions to test</param>
         /// <returns>Returns the highest version in the list that satisfies the range, or null if none of them do</returns>
         /// <exception cref="System.ArgumentNullException">Thrown when parameter is null</exception>
-        public SemVer MaxSatisfying(IEnumerable<SemVer> versions) => MaxSatisfying(this, versions);
+        public SemVer MaxSatisfying(SemVer[] versions) => MaxSatisfying(this, versions);
 
 
         /// <summary>
@@ -514,7 +551,7 @@ namespace pspm
         /// <code>SemVerRange.MinSatisfying(">1.2.3", new Semver[]{"1.2.0", "1.2.4", "1.2.99"}); // =>returns "1.2.4"</code>
         /// </example>
         /// <exception cref="System.ArgumentNullException">Thrown when parameter is null</exception>
-        public static SemVer MinSatisfying(SemVerRange range, IEnumerable<SemVer> versions)
+        public static SemVer MinSatisfying(SemVerRange range, SemVer[] versions)
         {
             if (versions == null || range == null) { throw new ArgumentNullException(); }
 
@@ -536,7 +573,7 @@ namespace pspm
         /// </summary>
         /// <param name="versions">The list of versions to test</param>
         /// <returns>Returns the lowest version in the list that satisfies the range, or null if none of them do</returns>
-        public SemVer MinSatisfying(IEnumerable<SemVer> versions) => MinSatisfying(this, versions);
+        public SemVer MinSatisfying(SemVer[] versions) => MinSatisfying(this, versions);
 
 
         /// <summary>
@@ -548,7 +585,7 @@ namespace pspm
         /// <example>
         /// <code>SemVerRange.Satisfying(">1.2.3", new SemVer[]{"1.2.0", "1.2.4", "1.2.99"}); // =>returns {"1.2.4", "1.2.9"}</code>
         /// </example>
-        public static IEnumerable<SemVer> Satisfying(SemVerRange range, IEnumerable<SemVer> versions)
+        public static SemVer[] Satisfying(SemVerRange range, SemVer[] versions)
         {
             return versions.Where(v => range.IsSatisfied(v)).ToArray();
         }
@@ -559,7 +596,7 @@ namespace pspm
         /// </summary>
         /// <param name="versions">The list of versions to test</param>
         /// <returns>Returns all versions in the list that satisfies the range, or empty array if none of them do</returns>
-        public IEnumerable<SemVer> Satisfying(IEnumerable<SemVer> versions) => Satisfying(this, versions);
+        public SemVer[] Satisfying(SemVer[] versions) => Satisfying(this, versions);
 
 
         /// <summary>
@@ -579,6 +616,31 @@ namespace pspm
         /// </example>
         /// <exception cref="System.ArgumentNullException">Thrown if both range0 and range1 are null</exception>
         public static SemVerRange Intersect(SemVerRange range0, SemVerRange range1)
+        {
+            if (range0 == null && range1 == null) { throw new ArgumentNullException($"Both {nameof(range0)} and {nameof(range1)} are null"); }
+            if (range0 == null) { return range1; }
+            if (range1 == null) { return range0; }
+
+            if (range0.RangeSet.Length == 1 && range1.RangeSet.Length == 1)
+            {
+                return _SingleIntersect(range0, range1);
+            }
+
+            List<SemVerRange> rangeSet = new List<SemVerRange>();
+
+            for (int i = 0; i < range0.RangeSet.Length; i++)
+            {
+                for (int j = 0; j < range1.RangeSet.Length; j++)
+                {
+                    rangeSet.Add(_SingleIntersect(range0.RangeSet[i], range1.RangeSet[j]));
+                }
+            }
+
+            return _UnionAll(rangeSet.ToArray());
+        }
+
+
+        private static SemVerRange _SingleIntersect(SemVerRange range0, SemVerRange range1)
         {
             if (range0 == null && range1 == null) { throw new ArgumentNullException(); }
             if (range0 == null) { return range1; }
@@ -614,8 +676,8 @@ namespace pspm
             {
                 if (lower.IncludeMaximum && higher.IncludeMinimum)
                 {
-                    newMax = lower.MaximumVersion;
-                    newIncludeMax = true;
+                    // boundary intersection
+                    return new SemVerRange(lower.MaximumVersion.ToString());
                 }
                 else
                 {
@@ -675,10 +737,10 @@ namespace pspm
         /// <code>SemVerRange.IntersectAll(new SemVerRange[]{">1.0.0", "<=2.0.0", "*"});</code>
         /// </example>
         /// <exception cref="System.ArgumentNullException">Thrown when input is null</exception>
-        public static SemVerRange IntersectAll(ICollection<SemVerRange> ranges)
+        public static SemVerRange IntersectAll(params SemVerRange[] ranges)
         {
             if (ranges == null) { throw new ArgumentNullException(); }
-            if (ranges.Count <= 1) { return ranges.FirstOrDefault(); }
+            if (ranges.Length <= 1) { return ranges.FirstOrDefault(); }
 
             SemVerRange ret = null;
             foreach (var r in ranges)
@@ -695,6 +757,95 @@ namespace pspm
         /// </summary>
         /// <returns>Range expression string</returns>
         public override string ToString() => this.Expression;
+
+
+        private static SemVerRange _Union(SemVerRange range0, SemVerRange range1)
+        {
+            if (range0 == null && range1 == null) { throw new ArgumentNullException(); }
+            if (range0 == null) { return range1; }
+            if (range1 == null) { return range0; }
+
+            // some special cases
+            if (range0.Expression == ">=0.0.0") { return range0; }
+            if (range1.Expression == ">=0.0.0") { return range1; }
+            if (range0.Expression == "<0.0.0") { return range1; }
+            if (range1.Expression == "<0.0.0") { return range0; }
+
+            SemVer newMax = null;
+            SemVer newMin = null;
+            bool newIncludeMax = false;
+            bool newIncludeMin = false;
+
+            SemVerRange higher, lower;
+
+            //sort
+            if (range0.MaximumVersion > range1.MaximumVersion)
+            {
+                higher = range0;
+                lower = range1;
+            }
+            else
+            {
+                higher = range1;
+                lower = range0;
+            }
+
+            // no intersection
+            if (lower.MaximumVersion < higher.MinimumVersion)
+            {
+                return _newSemVerRangeSet(lower, higher);
+            }
+
+            if (lower.MaximumVersion == higher.MinimumVersion)
+            {
+                if (!lower.IncludeMaximum && !higher.IncludeMinimum)
+                {   // no intersection
+                    return _newSemVerRangeSet(lower, higher);
+                }
+            }
+
+            newMax = higher.MaximumVersion;
+            newMin = lower.MinimumVersion;
+            newIncludeMax = higher.IncludeMaximum;
+
+            if (lower.MinimumVersion < higher.MinimumVersion)
+            {
+                newIncludeMin = lower.IncludeMinimum;
+            }
+            else if (lower.MinimumVersion == higher.MinimumVersion)
+            {
+                newIncludeMin = (lower.IncludeMinimum || higher.IncludeMinimum);
+            }
+            else
+            {
+                return higher;
+            }
+
+            return new SemVerRange(newMin, newMax, newIncludeMin, newIncludeMax);
+        }
+
+
+        private static SemVerRange _UnionAll(SemVerRange[] ranges)
+        {
+            if (ranges == null) { throw new ArgumentNullException(); }
+
+            List<SemVerRange> rangeSet = ranges.ToList();
+            rangeSet.OrderBy(r => r.MaximumVersion);
+            for (int i = 0; i < (ranges.Length - 1); i++)
+            {
+                var r = _Union(ranges[i], ranges[i + 1]);
+                if (r.RangeSet.Length == 1)
+                {
+                    ranges[i] = null;
+                    ranges[i + 1] = r;
+                }
+            }
+
+            rangeSet = ranges.ToList();
+            rangeSet.RemoveAll(r => r == null);
+
+            return _newSemVerRangeSet(rangeSet.ToArray());
+        }
     }
     //:------------------------:
     #endregion SemVerRange
