@@ -1,9 +1,16 @@
 # Original code obtained from https://github.com/PowerShell/PowerShell/issues/2736
 
 # Formats JSON in a nicer format than the built-in ConvertTo-Json does.
-function Format-Json([Parameter(Mandatory, ValueFromPipeline)][String] $json) {
+function Format-Json {
+    param
+    (
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [String]
+        $json
+    ) 
+
     $indent = 0;
-    ($json -Split '\n' |
+    $result = ($json -Split '\n' |
             % {
             if ($_ -match '[\}\]]') {
                 # This line contains  ] or }, decrement the indentation level
@@ -16,4 +23,8 @@ function Format-Json([Parameter(Mandatory, ValueFromPipeline)][String] $json) {
             }
             $line
         }) -Join "`n"
+    
+    # Unescape Html characters (<>&')
+    $result.Replace('\u0027', "'").Replace('\u003c', "<").Replace('\u003e', ">").Replace('\u0026', "&")
+    
 }
