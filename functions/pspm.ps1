@@ -88,6 +88,34 @@ function pspm {
         return
     }
 
+    # pspm update
+    elseif ($Command -eq 'update') {
+        [HashTable]$private:param = @{
+            Name = $Name
+        }
+        if ($Scope) {$private:param.Add('Scope', $Scope)}
+        if ($Global) {$private:param.Add('Global', $Global)}
+
+        if ($PSBoundParameters.ContainsKey('Save')) {
+            # Default Save parameter is $true in update
+            $private:param.Add('Save', $Save)
+        }
+
+        # run preupdate script
+        pspm-run -CommandName 'preupdate' -IfPresent
+
+        # main
+        pspm-update @param
+        
+        # run update script
+        pspm-run -CommandName 'update' -IfPresent
+        
+        # run postupdate script
+        pspm-run -CommandName 'postupdate' -IfPresent
+
+        return
+    }
+
     # pspm uninstall
     elseif ($Command -eq 'uninstall') {
         [HashTable]$private:param = @{
@@ -195,7 +223,10 @@ function pspm-install {
         $Save,
 
         [Parameter()]
-        [switch]$Clean
+        [switch]$Clean,
+
+        [Parameter()]
+        [switch]$Force
     )
 
     $local:ModuleDir = $script:ModuleDir
@@ -238,7 +269,14 @@ function pspm-install {
     # Install from Name
     if (-not [String]::IsNullOrEmpty($Name)) {
         try {
-            $local:targetModule = getModule -Version $Name -Path $local:ModuleDir -ErrorAction Stop
+
+            $paramHash = @{
+                Version     = $Name
+                Path        = $local:ModuleDir
+                CommandType = if ($Force) {'Update'}else {'Install'}
+            }
+            
+            $local:targetModule = getModule @paramHash -ErrorAction Stop
     
             if ($local:targetModule) {
                 Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
@@ -273,7 +311,15 @@ function pspm-install {
             $local:moduleVersion = $PackageJson.dependencies.($_.Name)
     
             try {
-                $local:targetModule = getModule -Name $local:moduleName -Version $local:moduleVersion -Path $local:ModuleDir -ErrorAction Stop
+
+                $paramHash = @{
+                    Name        = $local:moduleName
+                    Version     = $local:moduleVersion
+                    Path        = $local:ModuleDir
+                    CommandType = if ($Force) {'Update'} else {'Install'}
+                }
+
+                $local:targetModule = getModule @paramHash -ErrorAction Stop
                     
                 if ($local:targetModule) {
                     Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
@@ -289,6 +335,42 @@ function pspm-install {
         Write-Error ('Could not find package.json in the current directory')
         return
     }
+}
+
+
+function pspm-update {
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [string]
+        $Name,
+
+        [Parameter()]
+        [ValidateSet('Global', 'CurrentUser')]
+        [string]
+        $Scope,
+
+        [Parameter()]
+        [alias('g')]
+        [switch]
+        $Global,
+
+        [Parameter()]
+        [bool]
+        $Save = $true
+    )
+
+    $p = @{
+        Name   = $Name
+        Global = $Global
+        Save   = $Save
+    }
+
+    if ($Scope) {
+        $p.Scope = $Scope
+    }
+
+    pspm-install @p -Force
 }
 
 
