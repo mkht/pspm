@@ -129,6 +129,36 @@ try {
                 }
             }
 
+            Context 'Hyphen Ranges' {
+
+                It '"1.2.3 - 2.3.4" := >=1.2.3 <=2.3.4' {
+                    $range = [pspm.SemVerRange]::new('1.2.3 - 2.3.4')
+                    $range.MaximumVersion | Should -Be ([pspm.SemVer]::new(2, 3, 4))
+                    $range.MinimumVersion | Should -Be ([pspm.SemVer]::new(1, 2, 3))
+                    $range.IncludeMaximum | Should -Be $true
+                    $range.IncludeMinimum | Should -Be $true
+                    $range.Expression | Should -Be '>=1.2.3 <=2.3.4'
+                }
+
+                It '"1.2 - 2.3.4" := >=1.2.0 <=2.3.4 (partial version is provided as the first)' {
+                    $range = [pspm.SemVerRange]::new('1.2 - 2.3.4')
+                    $range.MaximumVersion | Should -Be ([pspm.SemVer]::new(2, 3, 4))
+                    $range.MinimumVersion | Should -Be ([pspm.SemVer]::new(1, 2, 0))
+                    $range.IncludeMaximum | Should -Be $true
+                    $range.IncludeMinimum | Should -Be $true
+                    $range.Expression | Should -Be '>=1.2.0 <=2.3.4'
+                }
+
+                It '"1.2.3 - 2" := >=1.2.3 <3.0.0 (partial version is provided as the second)' {
+                    $range = [pspm.SemVerRange]::new('1.2.3 - 2')
+                    $range.MaximumVersion | Should -Be ([pspm.SemVer]::new(3, 0, 0))
+                    $range.MinimumVersion | Should -Be ([pspm.SemVer]::new(1, 2, 3))
+                    $range.IncludeMaximum | Should -Be $false
+                    $range.IncludeMinimum | Should -Be $true
+                    $range.Expression | Should -Be '>=1.2.3 <3.0.0'
+                }
+            }
+
             Context 'X-Ranges' {
 
                 It '"1.2.x" := >=1.2.0 <1.3.0)' {
@@ -281,6 +311,15 @@ try {
                     $range.IncludeMinimum | Should -Be $false
                     $range.Expression | Should -Be '>1.2.7 <=1.3.0'
                 }
+
+                It '>1.0.0 <3.0.0 2.0.0 - 4.0.0 := >=2.0.0 <3.0.0 (mixed in hyphen ranges)' {
+                    $range = [pspm.SemVerRange]::new('>1.0.0 <3.0.0 2.0.0 - 4.0.0')
+                    $range.MaximumVersion | Should -Be ([pspm.SemVer]::new(3, 0, 0))
+                    $range.MinimumVersion | Should -Be ([pspm.SemVer]::new(2, 0, 0))
+                    $range.IncludeMaximum | Should -Be $false
+                    $range.IncludeMinimum | Should -Be $true
+                    $range.Expression | Should -Be '>=2.0.0 <3.0.0'
+                }
             }
 
             Context 'Union sets' {
@@ -307,6 +346,15 @@ try {
                     $range.IncludeMaximum | Should -Be $true
                     $range.IncludeMinimum | Should -Be $true
                     $range.Expression | Should -Be '>=0.0.0'
+                }
+
+                It '"<2.0.0 || 1.0.0 - 3.0.0" := <=3.0.0 (mixed in hyphen ranges)' {
+                    $range = [pspm.SemVerRange]::new('<2.0.0 || 1.0.0 - 3.0.0')
+                    $range.MaximumVersion | Should -Be ([pspm.SemVer]::new(3, 0, 0))
+                    $range.MinimumVersion | Should -Be ([pspm.SemVer]::Min)
+                    $range.IncludeMaximum | Should -Be $true
+                    $range.IncludeMinimum | Should -Be $true
+                    $range.Expression | Should -Be '<=3.0.0'
                 }
 
                 It '1.2.7 || >=1.2.9 <2.0.0' {
@@ -363,6 +411,10 @@ try {
 
             It '"1.5.0" is not satisfied ">=0.1.0 <=1.0.0"' {
                 [pspm.SemVerRange]::IsSatisfied('>=0.1.0 <=1.0.0', '1.5.0') | Should -Not -BeTrue
+            }
+
+            It '"1.2.3" is satisfied "1.0.0 - 1.3.0" (Hyphen ranges)' {
+                [pspm.SemVerRange]::IsSatisfied('1.0.0 - 1.3.0', '1.2.3') | Should -BeTrue
             }
 
             It '"1.2.3" is satisfied "1.x" (X-ranges)' {

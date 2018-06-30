@@ -124,7 +124,7 @@ namespace pspm
 
             foreach (var subexp in allExpressions)
             {
-                string[] subIntersection = subexp.Split(null).Select(s => s.Trim()).Where(e => !string.IsNullOrEmpty(e)).ToArray();
+                string[] subIntersection = Regex.Split(subexp, @"(?<!-)\s+(?!-)").Select(s => s.Trim()).Where(e => !string.IsNullOrEmpty(e)).ToArray();
 
                 List<SemVerRange> intersectionSet = new List<SemVerRange>();
                 foreach (var sub in subIntersection)
@@ -184,6 +184,43 @@ namespace pspm
                 range.IncludeMaximum = true;
                 range.IncludeMinimum = true;
                 range.Expression = ">=0.0.0";
+            }
+
+            // Hyphen Ranges (1.2.3 - 2.3.4, 1.2 - 2.3.4, 1.2.3 - 2)
+            else if (Regex.IsMatch(expression, @"^.+ - .+$", RegexOptions.IgnoreCase))
+            {
+                string[] a = Regex.Split(expression, @" - ");
+                string first = a[0];
+                string second = a[1];
+
+                Regex valid = new Regex(@"^\d+(\.\d+){0,3}$");
+                Regex partial = new Regex(@"^\d+(\.\d+)?$");
+
+                if (!valid.IsMatch(first) || !valid.IsMatch(second))
+                {
+                    isError = true;
+                }
+                else
+                {
+                    //>=first
+                    SemVerRange firstRange = new SemVerRange(new SemVer(first), SemVer.Max, true, true);
+                    SemVerRange secondRange = null;
+
+                    if (partial.IsMatch(second))
+                    {
+                        string newexp = second + ".x";  //treat as X-Range
+                        var regex = new Regex(@"\d+(?=\.x)", RegexOptions.IgnoreCase);
+                        var r = _RangeHelper(newexp, regex);
+                        secondRange = new SemVerRange(SemVer.Min, r.MaximumVersion, true, false);
+                    }
+                    else
+                    {
+                        //<=second
+                        secondRange = new SemVerRange(SemVer.Min, new SemVer(second), true, true);
+                    }
+
+                    return SemVerRange.Intersect(firstRange, secondRange);
+                }
             }
 
             // X-Ranges (1.x, 1.2.x, 1.2.*)
