@@ -680,8 +680,7 @@ namespace pspm
         /// <summary>
         /// Calculate the intersection between two ranges
         /// </summary>
-        /// <param name="range">The Range to intersect with</param>
-        /// <param name="range1">The Range to intersect with range0</param>
+        /// <param name="range">The Range to intersect with this range</param>
         /// <returns>
         /// Return the range that intersects between two ranges
         /// NOTE: If the input range is null, it returns this range
