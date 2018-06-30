@@ -677,6 +677,42 @@ namespace pspm
         }
 
 
+        /// <summary>
+        /// Calculate the intersection between two ranges
+        /// </summary>
+        /// <param name="range">The Range to intersect with</param>
+        /// <param name="range1">The Range to intersect with range0</param>
+        /// <returns>
+        /// Return the range that intersects between two ranges
+        /// NOTE: If the input range is null, it returns this range
+        /// </returns>
+        public SemVerRange Intersect(SemVerRange range) => Intersect(this, range);
+
+
+        /// <summary>
+        /// Calculate the intersection of multiple ranges
+        /// </summary>
+        /// <param name="ranges">The collection of ranges</param>
+        /// <returns>Return the range that intersects with all ranges</returns>
+        /// <example>
+        /// <code>SemVerRange.IntersectAll(new SemVerRange[]{">1.0.0", "<=2.0.0", "*"});</code>
+        /// </example>
+        /// <exception cref="System.ArgumentNullException">Thrown when input is null</exception>
+        public static SemVerRange IntersectAll(params SemVerRange[] ranges)
+        {
+            if (ranges == null) { throw new ArgumentNullException(); }
+            if (ranges.Length <= 1) { return ranges.FirstOrDefault(); }
+
+            SemVerRange ret = null;
+            foreach (var r in ranges)
+            {
+                ret = Intersect(ret, r);
+            }
+
+            return ret;
+        }
+
+
         private static SemVerRange _SingleIntersect(SemVerRange range0, SemVerRange range1)
         {
             if (range0 == null && range1 == null) { throw new ArgumentNullException(); }
@@ -750,42 +786,6 @@ namespace pspm
             }
 
             return new SemVerRange(newMin, newMax, newIncludeMin, newIncludeMax);
-        }
-
-
-        /// <summary>
-        /// Calculate the intersection between two ranges
-        /// </summary>
-        /// <param name="range">The Range to intersect with</param>
-        /// <param name="range1">The Range to intersect with range0</param>
-        /// <returns>
-        /// Return the range that intersects between two ranges
-        /// NOTE: If the input range is null, it returns this range
-        /// </returns>
-        public SemVerRange Intersect(SemVerRange range) => Intersect(this, range);
-
-
-        /// <summary>
-        /// Calculate the intersection of multiple ranges
-        /// </summary>
-        /// <param name="ranges">The collection of ranges</param>
-        /// <returns>Return the range that intersects with all ranges</returns>
-        /// <example>
-        /// <code>SemVerRange.IntersectAll(new SemVerRange[]{">1.0.0", "<=2.0.0", "*"});</code>
-        /// </example>
-        /// <exception cref="System.ArgumentNullException">Thrown when input is null</exception>
-        public static SemVerRange IntersectAll(params SemVerRange[] ranges)
-        {
-            if (ranges == null) { throw new ArgumentNullException(); }
-            if (ranges.Length <= 1) { return ranges.FirstOrDefault(); }
-
-            SemVerRange ret = null;
-            foreach (var r in ranges)
-            {
-                ret = Intersect(ret, r);
-            }
-
-            return ret;
         }
 
 
