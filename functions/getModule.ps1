@@ -12,7 +12,12 @@ function getModule {
 
         [Parameter(Mandatory)]
         [string]
-        $Path
+        $Path,
+
+        [Parameter(Mandatory)]
+        [ValidateSet('Install', 'Update')]
+        [string]
+        $CommandType
     )
 
     Convert-Path -Path $Path -ErrorAction Stop > $null  #throw exception when the path not exist
@@ -36,8 +41,63 @@ function getModule {
         'PSGallery' {
             $local:paramHash = $moduleType
             $paramHash.Remove('Type')
+
+            if ($CommandType -eq 'Update') {
+                $paramHash.Force = $true
+            }
+
             getModuleFromPSGallery @paramHash -Path $Path
         }
+    }
+}
+
+function getModuleVersion {
+    [CmdletBinding()]
+    Param
+    (
+        [Parameter(Mandatory)]
+        [string]
+        $Name
+    )
+
+    $moduleType = parseModuleType -Name $Name
+
+    switch ($moduleType.Type) {
+        'GitHub' {
+            # getModuleVersionFromGitHub @paramHash -Path $Path
+        }
+
+        'PSGallery' {
+            getModuleVersionFromPSGallery -Name $moduleType.Name
+        }
+    }
+}
+
+
+function getModuleVersionFromPSGallery {
+    [CmdletBinding()]
+    param
+    (
+        # The name of module
+        [Parameter(Mandatory)]
+        [string]
+        $Name
+    )
+
+    if ((Get-Command Find-Module).Parameters.AllowPrerelease) {
+        # Only PowerShell 6.0+ has AllowPrerelease param
+        $foundModules = Find-Module -Name $Name -AllVersions -AllowPrerelease -ErrorAction SilentlyContinue
+    }
+    else {
+        $foundModules = Find-Module -Name $Name -AllVersions -ErrorAction SilentlyContinue
+    }
+
+    if (($foundModules | Measure-Object).count -le 0) {
+        Write-Error ('{0}: No match found for the specified search criteria and module name' -f $Name)
+        return $null
+    }
+    else {
+        $foundModules
     }
 }
 
@@ -156,13 +216,7 @@ function getModuleFromPSGallery {
         }
     }
 
-    if ((-not $Latest) -and (Get-Command Find-Module).Parameters.AllowPrerelease) {
-        # Only PowerShell 6.0+ has AllowPrerelease param
-        $foundModules = Find-Module -Name $Name -AllVersions -AllowPrerelease -ErrorAction SilentlyContinue
-    }
-    else {
-        $foundModules = Find-Module -Name $Name -AllVersions -ErrorAction SilentlyContinue
-    }
+    $foundModules = getModuleVersionFromPSGallery -Name $Name
 
     if ($Latest) {
         $targetModule = $foundModules | Sort-Object Version -Descending | Select-Object -First 1
