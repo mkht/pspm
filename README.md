@@ -138,7 +138,7 @@ pspm supports the `"scripts"` property of the `package.json`.
 
 ```PowerShell
 pspm run '<Script Name>'
-pspm run '<Script Name>' -Arguments [string[]]  #with arguments
+pspm run '<Script Name>' -Arguments [Object[]]  #with arguments
 pspm run '<Script Name>' -IfPresent  #run only when the scripts exist
 #aliases: pspm run-script
 ```
@@ -347,6 +347,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.1.0**
+  - You can pass any type of objects to `pspm run` arguments
+
 + **1.0.0**
   - Initial public release
 
