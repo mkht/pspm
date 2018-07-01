@@ -34,7 +34,7 @@ function pspm {
         [switch]$Clean,
 
         [Parameter(ParameterSetName = 'Run')]
-        [string[]]
+        [Object[]]
         $Arguments,
 
         [Parameter(ParameterSetName = 'Run')]
@@ -473,7 +473,7 @@ function pspm-run {
         $CommandName,
 
         [Parameter()]
-        [string[]]
+        [Object[]]
         $Arguments,
 
         [Parameter()]
