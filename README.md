@@ -66,7 +66,7 @@ You can create `packages.json` and run the `pspm install` without module name.
 
 If there is a `package.json` file in the working directory, pspm installs all modules in the list.  
 
-About `package.json`, please refer [the section](#package.json) below.
+About `package.json`, please refer [the section](#packagejson) below.
 
 
 #### Option: Global installation
@@ -267,7 +267,7 @@ A package.json file:
 ### scripts
 
 You can define script in package.json  
-Please refer [run scripts](#run%20scripts)  
+Please refer [run scripts](#run-scripts)  
 
 ```json
 "scripts": {"hello": "echo 'Hello pspm !'"}
@@ -276,7 +276,7 @@ Please refer [run scripts](#run%20scripts)
 ### config
 
 define environment variable for run-scripts.  
-Please refer [run scripts](#run%20scripts) 
+Please refer [run scripts](#run-scripts) 
 
 ```json
 "config": {"port": "8080"}
