@@ -1,6 +1,6 @@
 @{
     # Version number of this module.
-    ModuleVersion     = '0.1.0'
+    ModuleVersion     = '1.0.0'
 
     # ID used to uniquely identify this module
     GUID              = '43b54a10-c2d7-45b1-b46f-9a9da9da1c39'
@@ -35,7 +35,7 @@
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags         = @()
+            Tags         = @('npm', 'PackageManagement')
 
             # A URL to the license for this module.
             LicenseUri   = 'https://github.com/mkht/pspm/blob/master/LICENSE'
@@ -47,7 +47,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = ''
+            ReleaseNotes = 'Initial public release'
 
         } # End of PSData hashtable
 
