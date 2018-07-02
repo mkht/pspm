@@ -178,6 +178,11 @@ function pspm {
 
         return
     }
+    
+    #pspm load (undocumented command)
+    elseif ($Command -eq 'load') {
+        pspm-load
+    }
 
     else {
         Write-Error ('Unsupported command: {0}' -f $Command)
@@ -518,4 +523,35 @@ function pspm-run {
             return
         }
     }
+}
+
+
+## Undocumented command
+# Add Module folder to $env:PSModulePath
+function pspm-load {
+    [CmdletBinding()]
+    param
+    (
+    )
+
+    $local:ModuleDir = $script:ModuleDir
+    $local:CurrentDir = $script:CurrentDir
+
+    #region Update $env:PSModulePath
+    [string]$tmpModulePath = $local:ModuleDir
+    [string]$oldPSModulePath = $env:PSModulePath
+
+    $oldPSModulePathArray = $oldPSModulePath.Split(';')
+
+    if ($oldPSModulePathArray -ccontains $tmpModulePath) {
+        $newPSModulePathArray = $oldPSModulePathArray | Where-Object {$_ -ne $tmpModulePath}
+        $newPSModulePath = $newPSModulePathArray -join ';'
+    }
+    else {
+        $newPSModulePath = $oldPSModulePath
+    }
+
+    $newPSModulePath = ($tmpModulePath, $newPSModulePath) -join ';'
+    $env:PSModulePath = $newPSModulePath
+    #endregion Update $env:PSModulePath
 }

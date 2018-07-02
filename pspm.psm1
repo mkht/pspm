@@ -31,24 +31,4 @@ $FunctionList | ForEach-Object {
 }
 #endregion Load functions
 
-
-#region Update $env:PSModulePath
-[string]$tmpModulePath = Join-Path $pwd.Path '/Modules'
-[string]$oldPSModulePath = $env:PSModulePath
-
-$oldPSModulePathArray = $oldPSModulePath.Split(';')
-
-if ($oldPSModulePathArray -ccontains $tmpModulePath) {
-    $newPSModulePathArray = $oldPSModulePathArray | Where-Object {$_ -ne $tmpModulePath}
-    $newPSModulePath = $newPSModulePathArray -join ';'
-}
-else {
-    $newPSModulePath = $oldPSModulePath
-}
-
-$newPSModulePath = ($tmpModulePath, $newPSModulePath) -join ';'
-$env:PSModulePath = $newPSModulePath
-#endregion Update $env:PSModulePath
-
-
 Export-ModuleMember -Function pspm
