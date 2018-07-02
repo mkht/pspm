@@ -347,6 +347,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.1.2**
+  - Some compatibility improvement
+
 + **1.1.0**
   - You can pass any type of objects to `pspm run` arguments
 
