@@ -347,6 +347,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **Unreleased**
+  - Fixed issue that some modules that has dependencies fails to import. [#59](https://github.com/mkht/pspm/issues/59)
+
 + **1.1.2**
   - Some compatibility improvement
   - Suppress unneeded output when Module folder created
