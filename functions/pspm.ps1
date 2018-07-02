@@ -260,7 +260,7 @@ function pspm-install {
     
     Write-Host ('Modules will be saved in "{0}"' -f $local:ModuleDir)
     if (-Not (Test-Path $local:ModuleDir)) {
-        New-Item -Path $local:ModuleDir -ItemType Directory
+        New-Item -Path $local:ModuleDir -ItemType Directory >$null
     }
     elseif ($Clean) {
         Get-ChildItem -Path $local:ModuleDir -Directory | Remove-Item -Recurse -Force
