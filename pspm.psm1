@@ -31,4 +31,6 @@ $FunctionList | ForEach-Object {
 }
 #endregion Load functions
 
+& (Join-Path (Join-Path $modulePath $functionsPath) 'Test-PowerShellGetVersion.ps1')
+
 Export-ModuleMember -Function pspm
