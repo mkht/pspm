@@ -84,12 +84,24 @@ function getModuleVersionFromPSGallery {
         $Name
     )
 
+    $foundModules = @()
+
     if ((Get-Command Find-Module).Parameters.AllowPrerelease) {
-        # Only PowerShell 6.0+ has AllowPrerelease param
-        $foundModules = Find-Module -Name $Name -AllVersions -AllowPrerelease -ErrorAction SilentlyContinue
+        # Only PowerShellGet 1.6.0+ has AllowPrerelease param
+        try {
+            $foundModules = Find-Module -Name $Name -AllVersions -AllowPrerelease | ForEach-Object {$foundModules += $_}
+        }
+        catch {
+            #Ignore Statement-terminating errors
+        }
     }
     else {
-        $foundModules = Find-Module -Name $Name -AllVersions -ErrorAction SilentlyContinue
+        try {
+            Find-Module -Name $Name -AllVersions | ForEach-Object {$foundModules += $_}
+        }
+        catch {
+            #Ignore Statement-terminating errors
+        }
     }
 
     if (($foundModules | Measure-Object).count -le 0) {
@@ -216,13 +228,13 @@ function getModuleFromPSGallery {
         }
     }
 
-    $foundModules = getModuleVersionFromPSGallery -Name $Name
+    $foundModules = getModuleVersionFromPSGallery -Name $Name -ErrorAction SilentlyContinue
 
     if ($Latest) {
         $targetModule = $foundModules | Sort-Object Version -Descending | Select-Object -First 1
     }
     else {
-        $targetModule = $foundModules | Where-Object {$SemVerRange.IsSatisfied($_.Version)} | Sort-Object Version -Descending | Select-Object -First 1
+        $targetModule = $foundModules | Where-Object {($_.Version -ne $null) -and $SemVerRange.IsSatisfied($_.Version)} | Sort-Object Version -Descending | Select-Object -First 1
     }
 
     if (($targetModule | Measure-Object).count -le 0) {

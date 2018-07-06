@@ -282,39 +282,34 @@ function pspm-install {
     try {
         # Install from Name
         if (-not [String]::IsNullOrEmpty($Name)) {
-            try {
 
-                $paramHash = @{
-                    Version     = $Name
-                    Path        = $local:ModuleDir
-                    CommandType = if ($Force) {'Update'}else {'Install'}
-                }
-            
-                $local:targetModule = getModule @paramHash -ErrorAction Stop
-    
-                if ($local:targetModule) {
-                    Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
-                    Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
-    
-                    if ($Save) {
-                        if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
-                            if (-Not $PackageJson.dependencies) {
-                                $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
-                            }
-                        }
-                        else {
-                            $PackageJson = [PSCustomObject]@{
-                                dependencies = [PSCustomObject]@{}
-                            }
-                        }
-    
-                        $PackageJson.dependencies | Add-Member -NotePropertyName $local:targetModule.Name -NotePropertyValue ('^' + [string]$local:targetModule.ModuleVersion) -Force
-                        $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $local:CurrentDir '/package.json') -Force -Encoding utf8
-                    }
-                }
+            $paramHash = @{
+                Version     = $Name
+                Path        = $local:ModuleDir
+                CommandType = if ($Force) {'Update'}else {'Install'}
             }
-            catch {
-                Write-Error ('{0}: {1}' -f $Name, $_.Exception.Message)
+            
+            $local:targetModule = getModule @paramHash
+    
+            if ($local:targetModule) {
+                Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
+                Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
+    
+                if ($Save) {
+                    if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
+                        if (-Not $PackageJson.dependencies) {
+                            $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
+                        }
+                    }
+                    else {
+                        $PackageJson = [PSCustomObject]@{
+                            dependencies = [PSCustomObject]@{}
+                        }
+                    }
+    
+                    $PackageJson.dependencies | Add-Member -NotePropertyName $local:targetModule.Name -NotePropertyValue ('^' + [string]$local:targetModule.ModuleVersion) -Force
+                    $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $local:CurrentDir '/package.json') -Force -Encoding utf8
+                }
             }
         }
         # Install from package.json
@@ -323,25 +318,19 @@ function pspm-install {
                 ForEach-Object {
                 $local:moduleName = $_.Name
                 $local:moduleVersion = $PackageJson.dependencies.($_.Name)
-    
-                try {
-
-                    $paramHash = @{
-                        Name        = $local:moduleName
-                        Version     = $local:moduleVersion
-                        Path        = $local:ModuleDir
-                        CommandType = if ($Force) {'Update'} else {'Install'}
-                    }
-
-                    $local:targetModule = getModule @paramHash -ErrorAction Stop
-                    
-                    if ($local:targetModule) {
-                        Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
-                        Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
-                    }
+                
+                $paramHash = @{
+                    Name        = $local:moduleName
+                    Version     = $local:moduleVersion
+                    Path        = $local:ModuleDir
+                    CommandType = if ($Force) {'Update'} else {'Install'}
                 }
-                catch {
-                    Write-Error ('{0}: {1}' -f $local:moduleName, $_.Exception.Message)
+
+                $local:targetModule = getModule @paramHash
+                    
+                if ($local:targetModule) {
+                    Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
+                    Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
                 }
             }
         }
