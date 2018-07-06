@@ -276,75 +276,65 @@ function pspm-install {
         Get-ChildItem -Path $local:ModuleDir -Directory | Remove-Item -Recurse -Force
     }
 
-    # Add Module path to $env:PSModulePath temporarily
+    # Add Module path to $env:PSModulePath
     pspm-load
     
-    try {
-        # Install from Name
-        if (-not [String]::IsNullOrEmpty($Name)) {
+    # Install from Name
+    if (-not [String]::IsNullOrEmpty($Name)) {
 
-            $paramHash = @{
-                Version     = $Name
-                Path        = $local:ModuleDir
-                CommandType = if ($Force) {'Update'}else {'Install'}
-            }
+        $paramHash = @{
+            Version     = $Name
+            Path        = $local:ModuleDir
+            CommandType = if ($Force) {'Update'}else {'Install'}
+        }
             
-            $local:targetModule = getModule @paramHash
+        $local:targetModule = getModule @paramHash
     
+        if ($local:targetModule) {
+            Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
+            Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
+    
+            if ($Save) {
+                if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
+                    if (-Not $PackageJson.dependencies) {
+                        $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
+                    }
+                }
+                else {
+                    $PackageJson = [PSCustomObject]@{
+                        dependencies = [PSCustomObject]@{}
+                    }
+                }
+    
+                $PackageJson.dependencies | Add-Member -NotePropertyName $local:targetModule.Name -NotePropertyValue ('^' + [string]$local:targetModule.ModuleVersion) -Force
+                $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $local:CurrentDir '/package.json') -Force -Encoding utf8
+            }
+        }
+    }
+    # Install from package.json
+    elseif ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
+        $PackageJson.dependencies | Get-Member -MemberType NoteProperty -ErrorAction SilentlyContinue | `
+            ForEach-Object {
+            $local:moduleName = $_.Name
+            $local:moduleVersion = $PackageJson.dependencies.($_.Name)
+                
+            $paramHash = @{
+                Name        = $local:moduleName
+                Version     = $local:moduleVersion
+                Path        = $local:ModuleDir
+                CommandType = if ($Force) {'Update'} else {'Install'}
+            }
+
+            $local:targetModule = getModule @paramHash
+                    
             if ($local:targetModule) {
                 Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
                 Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
-    
-                if ($Save) {
-                    if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
-                        if (-Not $PackageJson.dependencies) {
-                            $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
-                        }
-                    }
-                    else {
-                        $PackageJson = [PSCustomObject]@{
-                            dependencies = [PSCustomObject]@{}
-                        }
-                    }
-    
-                    $PackageJson.dependencies | Add-Member -NotePropertyName $local:targetModule.Name -NotePropertyValue ('^' + [string]$local:targetModule.ModuleVersion) -Force
-                    $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $local:CurrentDir '/package.json') -Force -Encoding utf8
-                }
             }
         }
-        # Install from package.json
-        elseif ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
-            $PackageJson.dependencies | Get-Member -MemberType NoteProperty -ErrorAction SilentlyContinue | `
-                ForEach-Object {
-                $local:moduleName = $_.Name
-                $local:moduleVersion = $PackageJson.dependencies.($_.Name)
-                
-                $paramHash = @{
-                    Name        = $local:moduleName
-                    Version     = $local:moduleVersion
-                    Path        = $local:ModuleDir
-                    CommandType = if ($Force) {'Update'} else {'Install'}
-                }
-
-                $local:targetModule = getModule @paramHash
-                    
-                if ($local:targetModule) {
-                    Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
-                    Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
-                }
-            }
-        }
-        else {
-            Write-Error ('Could not find package.json in the current directory')
-        }
     }
-    catch {
-        #re-throw
-        throw
-    }
-    finally {
-        # Cleanup $env:PSModulePath
-        pspm-unload
+    else {
+        Write-Error ('Could not find package.json in the current directory')
     }
 }
 
