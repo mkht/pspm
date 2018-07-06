@@ -231,10 +231,10 @@ function getModuleFromPSGallery {
     $foundModules = getModuleVersionFromPSGallery -Name $Name -ErrorAction SilentlyContinue
 
     if ($Latest) {
-        $targetModule = $foundModules | Sort-Object -Property {{[pspm.SemVer]$_.Version}} -Descending | Select-Object -First 1
+        $targetModule = $foundModules | Sort-Object -Property {[pspm.SemVer]$_.Version} -Descending | Select-Object -First 1
     }
     else {
-        $targetModule = $foundModules | Where-Object {($_.Version -ne $null) -and $SemVerRange.IsSatisfied($_.Version)} | Sort-Object -Property {{[pspm.SemVer]$_.Version}} -Descending | Select-Object -First 1
+        $targetModule = $foundModules | Where-Object {($_.Version -ne $null) -and $SemVerRange.IsSatisfied($_.Version)} | Sort-Object -Property {[pspm.SemVer]$_.Version} -Descending | Select-Object -First 1
     }
 
     if (($targetModule | Measure-Object).count -le 0) {
