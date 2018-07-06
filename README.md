@@ -23,6 +23,14 @@ You can install pspm through [PowerShell Gallery](https://www.powershellgallery.
 Install-Module -Name pspm
 ```
 
+#### Option: Update PowerShellGet
+We strongly recommend using the latest PowerShellGet module to improve compatibility and stability.  
+To update PowerShellGet use the following command and restart PowerShell.  
+
+```PowerShell
+Install-Module PowerShellGet -Force
+```
+
 ----
 ## Usage
 
@@ -348,6 +356,11 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.2.0**
+  - Now warning message displayed when loading modules if your system uses older version of PowerShellGet.
+  - Fixed issue that some modules that has pre-release versions fails to install in PowerShell 5.1 and earlier systems. [#61](https://github.com/mkht/pspm/issues/61)
+  - Some compatibility improvement
+
 + **1.1.3**
   - Fixed issue that some modules that has dependencies fails to import. [#59](https://github.com/mkht/pspm/issues/59)
 
