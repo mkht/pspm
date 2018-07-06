@@ -89,7 +89,7 @@ function getModuleVersionFromPSGallery {
     if ((Get-Command Find-Module).Parameters.AllowPrerelease) {
         # Only PowerShellGet 1.6.0+ has AllowPrerelease param
         try {
-            $foundModules = Find-Module -Name $Name -AllVersions -AllowPrerelease | ForEach-Object {$foundModules += $_}
+            Find-Module -Name $Name -AllVersions -AllowPrerelease | ForEach-Object {$foundModules += $_}
         }
         catch {
             #Ignore Statement-terminating errors

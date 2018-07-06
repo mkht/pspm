@@ -356,7 +356,10 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
-+ **1.2.0**
++ **1.2.1**
+  - **Fixed critical issue** that `pspm install` does not function properly in PowerShellGet 1.6+.
+
++ **1.2.0 (deprecated)**
   - Now warning message displayed when loading modules if your system uses older version of PowerShellGet.
   - Fixed issue that some modules that has pre-release versions fails to install in PowerShell 5.1 and earlier systems. [#61](https://github.com/mkht/pspm/issues/61)
   - Some compatibility improvement
