@@ -62,7 +62,7 @@ pspm install '<user>/<repo-name>#<ref>'
 #### Tips: Install multiple Modules at once
 
 If you want to install multiple modules at once or manage modules as code.  
-You can create `packages.json` and run the `pspm install` without module name.  
+You can create `package.json` and run the `pspm install` without module name.  
 
 If there is a `package.json` file in the working directory, pspm installs all modules in the list.  
 
@@ -260,7 +260,7 @@ Pester@4.2.0: Importing module.
 A package.json file:
 
 + lists the modules that your project depends on.
-+ allows you to specify the versions of a module that your project can use using.
++ allows you to specify the versions of a module that you want to use.
 + define scripts for CI/CD process.
 
 
@@ -308,7 +308,7 @@ You can use [npm-semver](https://docs.npmjs.com/misc/semver#ranges) syntax for s
   - `"latest"` Match only newest version
 
 + **Comparators**
-  - *<*, *>*, *<=*, *>=* Less than, Less equal, Greater than, Greater equal `>=1.0.0`
+  - *<*, *>*, *<=*, *>=* Less than, Greater than, Less equal, Greater equal `>=1.0.0`
 
 + **Hyphen Ranges**
   - *X.Y.Z - A.B.C* specifies an inclusive set.  `1.2.3 - 2.3.4 := >=1.2.3 <=2.3.4`
@@ -323,7 +323,8 @@ You can use [npm-semver](https://docs.npmjs.com/misc/semver#ranges) syntax for s
   - `^0.0.3 := >=0.0.3 <0.0.4`
 
 + **Tilde Ranges**
-  - It is bit complicated. Please refer [npm-docs](https://docs.npmjs.com/misc/semver#tilde-ranges-123-12-1).
+  - `~1.2.3 := >=1.2.3 <1.3.0`
+  - The rule of tilde range is bit complicated. Please refer [npm-docs](https://docs.npmjs.com/misc/semver#tilde-ranges-123-12-1).
 
 
 ### Example
