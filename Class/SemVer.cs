@@ -199,6 +199,13 @@ namespace pspm
         }
 
 
+        // IsPrerelease()
+        public bool IsPrerelease()
+        {
+            return !string.IsNullOrEmpty(_PreReleaseLabel);
+        }
+
+
         // Parse()
         public static SemVer Parse(string expression)
         {

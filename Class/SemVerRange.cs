@@ -482,6 +482,12 @@ namespace pspm
         }
 
 
+        private static bool _IsTupleMatch(SemVer v1, SemVer v2)
+        {
+            return (v1.Major == v2.Major) && (v1.Minor == v2.Minor) && (v1.Patch == v2.Patch) && (v1.Revision == v2.Revision);
+        }
+
+
         /// <summary>
         /// Test whether the given version satisfies this range
         /// </summary>
@@ -496,28 +502,37 @@ namespace pspm
             foreach (var subRange in range.RangeSet)
             {
                 bool ret = true;
+                
+                bool isTupleMatchedMin = (subRange.MinimumVersion == null) ? false : _IsTupleMatch(subRange.MinimumVersion, version);
+                bool isTupleMatchedMax = (subRange.MaximumVersion == null) ? false : _IsTupleMatch(subRange.MaximumVersion, version);
 
+                //Lower limit test
                 if (subRange.MinimumVersion != null)
                 {
+                    SemVer v = subRange.MinimumVersion;
+
                     if (subRange.IncludeMinimum == true)
                     {
-                        ret &= (version >= subRange.MinimumVersion);
+                        ret &= (version >= v) && ((v.IsPrerelease() && isTupleMatchedMin) || !version.IsPrerelease() || isTupleMatchedMax);
                     }
                     else
                     {
-                        ret &= (version > subRange.MinimumVersion);
+                        ret &= (version > v) && ((v.IsPrerelease() && isTupleMatchedMin) || !version.IsPrerelease() || isTupleMatchedMax);
                     }
                 }
 
+                //Upper limit test
                 if (subRange.MaximumVersion != null)
                 {
+                    SemVer v = subRange.MaximumVersion;
+
                     if (subRange.IncludeMaximum == true)
                     {
-                        ret &= (version <= subRange.MaximumVersion);
+                        ret &= (version <= v) && ((v.IsPrerelease() && isTupleMatchedMax) || !version.IsPrerelease() || isTupleMatchedMin);
                     }
                     else
                     {
-                        ret &= (version < subRange.MaximumVersion);
+                        ret &= (version < v) && ((v.IsPrerelease() && isTupleMatchedMax) || !version.IsPrerelease() || isTupleMatchedMin);
                     }
                 }
 
