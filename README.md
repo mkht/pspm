@@ -11,7 +11,7 @@ You can manage PowerShell modules [npm](https://www.npmjs.com/) like commands.
 + PowerShell Core 6.0 or higher
 + Windows or macOS
 
-> Testing platforms  
+> Testing platforms:  
 > Windows 10 Pro x64 1803 with PowerShell 5.1 & PowerShell Core 6.0.2  
 > macOS High Sierra with PowerShell Core 6.1-preview.2
 
@@ -127,7 +127,7 @@ Thought as below scenarios.
 + Latest version of `Example` is `1.2.0`.
 
 In this scenario. If you run the command `pspm install 'Example@1.x'`, pspm will NOT update the module that because `1.0.0` is satisfied `1.x`.  
-But if you run `pspm update 'Example@1.x'`, pspm will update the `Example` as `1.2.0`.  
+But if you run `pspm update 'Example@1.x'`, pspm will update the `Example` to `1.2.0`.  
 
 
 ----
