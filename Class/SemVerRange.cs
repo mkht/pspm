@@ -502,7 +502,7 @@ namespace pspm
             foreach (var subRange in range.RangeSet)
             {
                 bool ret = true;
-                
+
                 bool isTupleMatchedMin = (subRange.MinimumVersion == null) ? false : _IsTupleMatch(subRange.MinimumVersion, version);
                 bool isTupleMatchedMax = (subRange.MaximumVersion == null) ? false : _IsTupleMatch(subRange.MaximumVersion, version);
 
@@ -510,30 +510,14 @@ namespace pspm
                 if (subRange.MinimumVersion != null)
                 {
                     SemVer v = subRange.MinimumVersion;
-
-                    if (subRange.IncludeMinimum == true)
-                    {
-                        ret &= (version >= v) && ((v.IsPrerelease() && isTupleMatchedMin) || !version.IsPrerelease() || isTupleMatchedMax);
-                    }
-                    else
-                    {
-                        ret &= (version > v) && ((v.IsPrerelease() && isTupleMatchedMin) || !version.IsPrerelease() || isTupleMatchedMax);
-                    }
+                    ret &= (subRange.IncludeMinimum ? (version >= v) : (version > v)) && ((v.IsPrerelease() && isTupleMatchedMin) || !version.IsPrerelease() || isTupleMatchedMax);
                 }
 
                 //Upper limit test
                 if (subRange.MaximumVersion != null)
                 {
                     SemVer v = subRange.MaximumVersion;
-
-                    if (subRange.IncludeMaximum == true)
-                    {
-                        ret &= (version <= v) && ((v.IsPrerelease() && isTupleMatchedMax) || !version.IsPrerelease() || isTupleMatchedMin);
-                    }
-                    else
-                    {
-                        ret &= (version < v) && ((v.IsPrerelease() && isTupleMatchedMax) || !version.IsPrerelease() || isTupleMatchedMin);
-                    }
+                    ret &= (subRange.IncludeMaximum ? (version <= v) : (version < v)) && ((v.IsPrerelease() && isTupleMatchedMax) || !version.IsPrerelease() || isTupleMatchedMin);
                 }
 
                 if (ret == true)
@@ -545,6 +529,7 @@ namespace pspm
 
             return false;
         }
+
 
         /// <summary>
         /// Test whether the given version satisfies this range
