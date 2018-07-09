@@ -1,6 +1,6 @@
 @{
     # Version number of this module.
-    ModuleVersion     = '1.2.1'
+    ModuleVersion     = '1.2.3'
 
     # ID used to uniquely identify this module
     GUID              = '43b54a10-c2d7-45b1-b46f-9a9da9da1c39'
@@ -47,7 +47,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'Fixed critical issue'
+            ReleaseNotes = ''
 
         } # End of PSData hashtable
 

@@ -356,6 +356,10 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.2.3**
+  - Fixed issue that an older version of module has been installed unexpectedly on some environments. [#62](https://github.com/mkht/pspm/issues/62)
+  - The pre-release tag comparison process was improved to be equal to [npm-semver](https://docs.npmjs.com/misc/semver#prerelease-tags) [#46](https://github.com/mkht/pspm/issues/46) [#47](https://github.com/mkht/pspm/issues/47)
+
 + **1.2.1**
   - **Fixed critical issue** that `pspm install` does not function properly in PowerShellGet 1.6+.
 
