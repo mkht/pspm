@@ -446,6 +446,11 @@ try {
                 [pspm.SemVerRange]::IsSatisfied('1.2.3', '1.x') | Should -BeTrue
             }
 
+            It '"1.2.3" & "1.2.9" are satisfied "~1.2.3" (Tilde pattern 1)' {
+                [pspm.SemVerRange]::IsSatisfied('1.2.3', '~1.2.3') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.2.9', '~1.2.3') | Should -BeTrue
+            }
+
             It '"0.2.99" is satisfied "~0.2.3" (Tilde pattern 2)' {
                 [pspm.SemVerRange]::IsSatisfied('0.2.99', '~0.2.3') | Should -BeTrue
             }
@@ -470,6 +475,27 @@ try {
                 [pspm.SemVerRange]::IsSatisfied('1.4.6', $range) | Should -BeTrue
                 [pspm.SemVerRange]::IsSatisfied('1.2.8', $range) | Should -Not -BeTrue
                 [pspm.SemVerRange]::IsSatisfied('2.0.0', $range) | Should -Not -BeTrue
+            }
+
+            It '"1.2.3-alpha.7" & "1.2.3" & "3.4.5" are satisfied ">1.2.3-alpha.3" but "3.4.5-alpha.9" is not (Prerelease 1) #46' {
+                $range = [pspm.SemVerRange]::new(">1.2.3-alpha.3")
+                [pspm.SemVerRange]::IsSatisfied('1.2.3-alpha.7', $range) | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.2.3', $range) | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('3.4.5', $range) | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('3.4.5-alpha.9', $range) | Should -BeFalse
+            }
+
+            It '"2.0.0-rc.2" & "1.6.0" are satisfied ">1.0.0 <=2.0.0-rc.4" but "1.5.0-rc.3" is not (Prerelease 2) #46' {
+                $range = [pspm.SemVerRange]::new(">1.0.0 <=2.0.0-rc.4")
+                [pspm.SemVerRange]::IsSatisfied('2.0.0-rc.2', $range) | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.6.0', $range) | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.5.0-rc.3', $range) | Should -BeFalse
+            }
+
+            It '"1.0.0-alpha" is not satisfied ">0.9.0 <1.0.0" (Prerelease 3) #47' {
+                $range = [pspm.SemVerRange]::new(">0.9.0 <1.0.0")
+                [pspm.SemVerRange]::IsSatisfied('1.0.0-alpha', $range) | Should -BeFalse
+                [pspm.SemVerRange]::IsSatisfied('0.9.3', $range) | Should -BeTrue
             }
 
             It 'non static IsSatisfied()' {

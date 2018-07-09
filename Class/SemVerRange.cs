@@ -482,6 +482,12 @@ namespace pspm
         }
 
 
+        private static bool _IsTupleMatch(SemVer v1, SemVer v2)
+        {
+            return (v1.Major == v2.Major) && (v1.Minor == v2.Minor) && (v1.Patch == v2.Patch) && (v1.Revision == v2.Revision);
+        }
+
+
         /// <summary>
         /// Test whether the given version satisfies this range
         /// </summary>
@@ -497,28 +503,21 @@ namespace pspm
             {
                 bool ret = true;
 
+                bool isTupleMatchedMin = (subRange.MinimumVersion == null) ? false : _IsTupleMatch(subRange.MinimumVersion, version);
+                bool isTupleMatchedMax = (subRange.MaximumVersion == null) ? false : _IsTupleMatch(subRange.MaximumVersion, version);
+
+                //Lower limit test
                 if (subRange.MinimumVersion != null)
                 {
-                    if (subRange.IncludeMinimum == true)
-                    {
-                        ret &= (version >= subRange.MinimumVersion);
-                    }
-                    else
-                    {
-                        ret &= (version > subRange.MinimumVersion);
-                    }
+                    SemVer v = subRange.MinimumVersion;
+                    ret &= (subRange.IncludeMinimum ? (version >= v) : (version > v)) && ((v.IsPrerelease() && isTupleMatchedMin) || !version.IsPrerelease() || isTupleMatchedMax);
                 }
 
+                //Upper limit test
                 if (subRange.MaximumVersion != null)
                 {
-                    if (subRange.IncludeMaximum == true)
-                    {
-                        ret &= (version <= subRange.MaximumVersion);
-                    }
-                    else
-                    {
-                        ret &= (version < subRange.MaximumVersion);
-                    }
+                    SemVer v = subRange.MaximumVersion;
+                    ret &= (subRange.IncludeMaximum ? (version <= v) : (version < v)) && ((v.IsPrerelease() && isTupleMatchedMax) || !version.IsPrerelease() || isTupleMatchedMin);
                 }
 
                 if (ret == true)
@@ -530,6 +529,7 @@ namespace pspm
 
             return false;
         }
+
 
         /// <summary>
         /// Test whether the given version satisfies this range
