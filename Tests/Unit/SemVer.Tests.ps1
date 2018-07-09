@@ -275,6 +275,18 @@ try {
             }
         }
 
+        Context 'IsPrerelease()' {
+            It 'Return True when the version has pre-release label' {
+                $var = [pspm.SemVer]::new('1.2.3-pre')
+                $var.IsPrerelease() | Should -BeTrue
+            }
+
+            It 'Return False when the version has not pre-release label' {
+                $var = [pspm.SemVer]::new('1.2.3')
+                $var.IsPrerelease() | Should -BeFalse
+            }
+        }
+
         Context 'CompareTo()' {
             It 'Throw exception if input object is not semver' {
                 $semver = [pspm.SemVer]::new(1)
