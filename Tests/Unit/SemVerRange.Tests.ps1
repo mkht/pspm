@@ -446,6 +446,11 @@ try {
                 [pspm.SemVerRange]::IsSatisfied('1.2.3', '1.x') | Should -BeTrue
             }
 
+            It '"1.2.3" & "1.2.9" are satisfied "~1.2.3" (Tilde pattern 1)' {
+                [pspm.SemVerRange]::IsSatisfied('1.2.3', '~1.2.3') | Should -BeTrue
+                [pspm.SemVerRange]::IsSatisfied('1.2.9', '~1.2.3') | Should -BeTrue
+            }
+
             It '"0.2.99" is satisfied "~0.2.3" (Tilde pattern 2)' {
                 [pspm.SemVerRange]::IsSatisfied('0.2.99', '~0.2.3') | Should -BeTrue
             }
