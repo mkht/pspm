@@ -9,7 +9,7 @@ function Get-ModuleInfo {
     )
 
     $moduleManifest = @(Get-ChildItem -Path $Path -Filter '*.psd1' -File -Recurse -Depth 1)[0]
-    
+
     if (-Not $moduleManifest) {
         $scriptModule = @(Get-ChildItem -Path $Path -Filter '*.psm1' -File -Recurse -Depth 1)[0]
         if ($scriptModule) {

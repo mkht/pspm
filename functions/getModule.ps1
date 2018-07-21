@@ -21,7 +21,7 @@ function getModule {
     )
 
     Convert-Path -Path $Path -ErrorAction Stop > $null  #throw exception when the path not exist
-    
+
     $paramHash = @{}
     if ($PSBoundParameters.ContainsKey('Name')) {
         $paramHash.Name = $Name
@@ -233,7 +233,7 @@ function getModuleFromPSGallery {
     )
 
     $Latest = ($Version -eq 'Latest')   #"Latest" is special term
-    
+
     if (-not $Latest) {
         try {
             $SemVerRange = [pspm.SemVerRange]::new($Version) #throw exception on parse error
@@ -243,7 +243,7 @@ function getModuleFromPSGallery {
             return
         }
     }
-    
+
     if ((-not $Latest) -and (-not $Force)) {
         if (Test-Path (Join-path $Path $Name)) {
             $local:moduleInfo = Get-ModuleInfo -Path (Join-path $Path $Name) -ErrorAction SilentlyContinue
@@ -262,7 +262,7 @@ function getModuleFromPSGallery {
         $targetModule = $foundModules | Sort-Object -Property {[pspm.SemVer]$_.Version} -Descending | Select-Object -First 1
     }
     else {
-        $targetModule = $foundModules | Where-Object {($_.Version -ne $null) -and $SemVerRange.IsSatisfied($_.Version)} | Sort-Object -Property {[pspm.SemVer]$_.Version} -Descending | Select-Object -First 1
+        $targetModule = $foundModules | Where-Object {($null-ne $_.Version) -and $SemVerRange.IsSatisfied($_.Version)} | Sort-Object -Property {[pspm.SemVer]$_.Version} -Descending | Select-Object -First 1
     }
 
     if (($targetModule | Measure-Object).count -le 0) {

@@ -60,9 +60,9 @@ function pspm {
 
     # pspm -v
     if (($Command -eq 'version') -or ($PSCmdlet.ParameterSetName -eq 'Version')) {
-        
+
         pspm-version
-        
+
         return
     }
 
@@ -82,10 +82,10 @@ function pspm {
 
         # main
         pspm-install @param
-        
+
         # run install script
         pspm-run -CommandName 'install' -IfPresent
-        
+
         # run postinstall script
         pspm-run -CommandName 'postinstall' -IfPresent
 
@@ -111,10 +111,10 @@ function pspm {
 
         # main
         pspm-update @param
-        
+
         # run update script
         pspm-run -CommandName 'update' -IfPresent
-        
+
         # run postupdate script
         pspm-run -CommandName 'postupdate' -IfPresent
 
@@ -132,7 +132,7 @@ function pspm {
 
         # run preuninstall script
         pspm-run -CommandName 'preuninstall' -IfPresent
-        
+
         # run uninstall script
         pspm-run -CommandName 'uninstall' -IfPresent
 
@@ -183,7 +183,7 @@ function pspm {
 
         return
     }
-    
+
     #pspm load (undocumented command)
     elseif ($Command -eq 'load') {
         pspm-load
@@ -206,7 +206,7 @@ function pspm-version {
     param()
 
     $local:ModuleRoot = $script:ModuleRoot
-        
+
     # Get version of myself
     $owmInfo = Import-PowerShellDataFile -LiteralPath (Join-Path -Path $local:ModuleRoot -ChildPath 'pspm.psd1')
     [string]($owmInfo.ModuleVersion)
@@ -249,25 +249,25 @@ function pspm-install {
 
     $local:ModuleDir = $script:ModuleDir
     $local:CurrentDir = $script:CurrentDir
-   
+
     #region Scope parameter
     if ($Global) {
         $Scope = 'Global'
     }
-    
+
     if ($Scope) {
         if ($Clean) {
             Write-Warning ("You can't use '-Clean' with '-Scope'")
             $Clean = $false
         }
-    
+
         if ($Scope -eq 'Global') {
             #Check for Admin Privileges (only Windows)
             if (-not (Test-AdminPrivilege)) {
                 throw [System.InvalidOperationException]::new('Administrator rights are required to install modules in "{0}"' -f $GlobalPSModulePath)
                 return
             }
-    
+
             $local:ModuleDir = $script:GlobalPSModulePath
         }
         elseif ($Scope -eq 'CurrentUser') {
@@ -275,7 +275,7 @@ function pspm-install {
         }
     }
     #endregion
-    
+
     Write-Host ('Modules will be saved in "{0}"' -f $local:ModuleDir)
     if (-Not (Test-Path $local:ModuleDir)) {
         New-Item -Path $local:ModuleDir -ItemType Directory >$null
@@ -286,7 +286,7 @@ function pspm-install {
 
     # Add Module path to $env:PSModulePath
     pspm-load
-    
+
     # Install from Name
     if (-not [String]::IsNullOrEmpty($Name)) {
 
@@ -295,15 +295,15 @@ function pspm-install {
             Path        = $local:ModuleDir
             CommandType = if ($Force) {'Update'}else {'Install'}
         }
-            
+
         $local:targetModule = getModule @paramHash
-    
+
         if ($local:targetModule) {
             if (-not $NoImport) {
                 Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
                 Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
             }
-    
+
             if ($Save) {
                 if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
                     if (-Not $PackageJson.dependencies) {
@@ -315,7 +315,7 @@ function pspm-install {
                         dependencies = [PSCustomObject]@{}
                     }
                 }
-    
+
                 $PackageJson.dependencies | Add-Member -NotePropertyName $local:targetModule.Name -NotePropertyValue ('^' + [string]$local:targetModule.ModuleVersion) -Force
                 $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $local:CurrentDir '/package.json') -Force -Encoding utf8
             }
@@ -327,7 +327,7 @@ function pspm-install {
             ForEach-Object {
             $local:moduleName = $_.Name
             $local:moduleVersion = $PackageJson.dependencies.($_.Name)
-                
+
             $paramHash = @{
                 Name        = $local:moduleName
                 Version     = $local:moduleVersion
@@ -336,7 +336,7 @@ function pspm-install {
             }
 
             $local:targetModule = getModule @paramHash
-                    
+
             if ($local:targetModule) {
                 if (-not $NoImport) {
                     Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
@@ -413,12 +413,12 @@ function pspm-uninstall {
 
     $local:ModuleDir = $script:ModuleDir
     $local:CurrentDir = $script:CurrentDir
-   
+
     #region Scope parameter
     if ($Global) {
         $Scope = 'Global'
     }
-    
+
     if ($Scope) {
         if ($Scope -eq 'Global') {
             #Check for Admin Privileges (only Windows)
@@ -426,7 +426,7 @@ function pspm-uninstall {
                 throw [System.InvalidOperationException]::new('Administrator rights are required to uninstall modules in "{0}"' -f $GlobalPSModulePath)
                 return
             }
-    
+
             $local:ModuleDir = $script:GlobalPSModulePath
         }
         elseif ($Scope -eq 'CurrentUser') {
@@ -434,9 +434,9 @@ function pspm-uninstall {
         }
     }
     #endregion
-    
+
     Write-Host ('Modules will be removed from "{0}"' -f $local:ModuleDir)
-    
+
     # Uninstall from Name
     $AllModules = Get-ChildItem -Path $local:ModuleDir -Directory -ErrorAction SilentlyContinue
     $AllModuleInfos = $AllModules | ForEach-Object {Get-ModuleInfo -Path $_.Fullname -ErrorAction SilentlyContinue}
@@ -460,7 +460,7 @@ function pspm-uninstall {
             if ($Save) {
                 $PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)
                 if ($PackageJson -and $PackageJson.dependencies) {
-                    if ($PackageJson.dependencies | gm -Type NoteProperty -Name $targetName) {
+                    if ($PackageJson.dependencies | Get-Member -Type NoteProperty -Name $targetName) {
                         $PackageJson.dependencies.PSObject.Members.Remove($targetName)
                         $PackageJson | ConvertTo-Json | Format-Json | Out-File -FilePath (Join-path $local:CurrentDir 'package.json') -Force -Encoding utf8
                     }
@@ -500,7 +500,7 @@ function pspm-run {
     if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
 
         if ($PackageJson.scripts | Get-Member -MemberType NoteProperty -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $CommandName}) {
-            
+
             # Load config
             if ($PackageJson.config) {
                 $PackageJson.config.PSObject.Members | Where-Object {$_.MemberType -eq 'NoteProperty'} | ForEach-Object {
@@ -509,7 +509,7 @@ function pspm-run {
                     New-Item -Path Env:/$fullname -Value $_.Value -Force >$null
                 }
             }
-            
+
             # Invoke script
             try {
                 $local:ScriptBlock = [scriptblock]::Create($PackageJson.scripts.($CommandName))

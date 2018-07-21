@@ -77,7 +77,7 @@ try {
 
             BeforeEach {
                 Set-Location -Path TestDrive:/
-                Get-ChildItem -Path ./ -Recurse | Remove-Item -Force 
+                Get-ChildItem -Path ./ -Recurse | Remove-Item -Force
             }
 
             AfterAll {
@@ -95,7 +95,7 @@ try {
                 It 'When "-Clean" specified, Remove all folders in Modules folder' {
                     New-Item -Path 'TestDrive:/Modules/SomeFolder' -ItemType Directory -Force
                     New-Item -Path 'TestDrive:/Modules/SomeFile.txt' -ItemType File -Force
-                    
+
                     { pspm install $MockModuleName1 -Clean } | Should -Not -Throw
                     'TestDrive:/Modules' | Should -Exist
                     'TestDrive:/Modules/SomeFolder' | Should -Not -Exist
@@ -185,7 +185,7 @@ try {
 
                 It 'Write-Error when package.json not exist' {
                     Remove-Item -Path 'TestDrive:/package.json' -Force -ErrorAction SilentlyContinue
-                    
+
                     { pspm install -ea Stop } | Should -Throw 'Could not find package.json in the current directory'
                 }
 
@@ -213,7 +213,7 @@ try {
                     New-Item -Path ('TestDrive:/Modules/{0}/{0}.psd1' -f $MockModuleName1) -ItemType File -Force >$null
 
                     {pspm uninstall $MockModuleName1} | Should -Not -Throw
-                    ('TestDrive:/Modules/{0}' -f $MockModuleName1) | Should -Not -Exist 
+                    ('TestDrive:/Modules/{0}' -f $MockModuleName1) | Should -Not -Exist
                 }
 
                 It 'If target module not exist, should output warning' {
@@ -227,7 +227,7 @@ try {
                     It 'Remove module info in package.json' {
                         $local:WarningPreference = 'SilentlyContinue'
                         New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1) -Force
-                        
+
                         { pspm uninstall $MockModuleName1 -Save } | Should -Not -Throw
 
                         'TestDrive:/package.json' | Should -Exist
@@ -241,7 +241,7 @@ try {
                         New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f $MockModuleName2, $MockModuleVersion2) -Force
                         New-Item -Path ('TestDrive:/Modules/{0}/{0}.psd1' -f $MockModuleName1) -ItemType File -Force >$null
                         $warnmsg = ('Entry "{0}" not found in package.json dependencies' -f $MockModuleName1)
-                        
+
                         { pspm uninstall $MockModuleName1 -Save 3>$null } | Should -Throw  $warnmsg
                     }
 
@@ -249,7 +249,7 @@ try {
                         $local:WarningPreference = 'Stop'
                         New-Item -Path ('TestDrive:/Modules/{0}/{0}.psd1' -f $MockModuleName1) -ItemType File -Force >$null
                         $warnmsg = 'Could not find package.json or dependencies entry'
-                        
+
                         { pspm uninstall $MockModuleName1 -Save 3>$null } | Should -Throw  $warnmsg
                     }
                 }
@@ -271,7 +271,7 @@ try {
 
             Context 'pspm run-script' {
                 Mock Get-PackageJson {$ScriptJsonObj1}
-                
+
                 It 'pspm run <command> invoke user defined script' {
                     pspm run hello | Should -Be 'hello'
                 }
@@ -319,7 +319,7 @@ try {
 
             Context 'pspm run-script (preserved words)' {
                 Mock Get-PackageJson {$ScriptJsonObj1}
-                
+
                 It 'pspm start' {
                     pspm start | Should -Be 'start'
                 }
@@ -339,7 +339,7 @@ try {
 
             Context 'pspm pre / post hook scripting' {
                 Mock Get-PackageJson {$HookScriptJsonObj1}
-                
+
                 It 'user defined script hooking' {
                     $ret = @(pspm run hello)
                     $ret | Should -HaveCount 3
