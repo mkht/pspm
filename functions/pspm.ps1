@@ -47,7 +47,13 @@ function pspm {
         [Parameter(ParameterSetName = 'Version')]
         [alias('v')]
         [switch]
-        $Version
+        $Version,
+
+        [Parameter()]
+        [PSCredential] $Credential,
+
+        [Parameter()]
+        [securestring] $GitHubToken
     )
 
     #region Variable Initialize
@@ -76,6 +82,9 @@ function pspm {
         if ($Save) {$private:param.Add('Save', $Save)}
         if ($Clean) {$private:param.Add('Clean', $Clean)}
         if ($NoImport) {$private:param.Add('NoImport', $NoImport)}
+
+        if ($Credential) {$private:param.Add('Credential', $Credential)}
+        elseif ($GitHubToken) {$private:param.Add('GitHubToken', $GitHubToken)}
 
         # run preinstall script
         pspm-run -CommandName 'preinstall' -IfPresent
@@ -244,7 +253,13 @@ function pspm-install {
         [switch]$NoImport,
 
         [Parameter()]
-        [switch]$Force
+        [switch]$Force,
+
+        [Parameter()]
+        [PSCredential] $Credential,
+
+        [Parameter()]
+        [securestring] $GitHubToken
     )
 
     $local:ModuleDir = $script:ModuleDir
@@ -293,8 +308,11 @@ function pspm-install {
         $paramHash = @{
             Version     = $Name
             Path        = $local:ModuleDir
-            CommandType = if ($Force) {'Update'}else {'Install'}
+            CommandType = if ($Force) {'Update'} else {'Install'}
         }
+
+        if ($Credential) {$paramHash.Credential = $Credential}
+        elseif ($GitHubToken) {$paramHash.Token = $GitHubToken}
 
         $local:targetModule = getModule @paramHash
 
@@ -374,7 +392,13 @@ function pspm-update {
 
         [Parameter()]
         [bool]
-        $Save = $true
+        $Save = $true,
+
+        [Parameter()]
+        [PSCredential] $Credential,
+
+        [Parameter()]
+        [securestring] $GitHubToken
     )
 
     $p = @{
@@ -389,6 +413,13 @@ function pspm-update {
 
     if ($NoImport) {
         $p.NoImport = $NoImport
+    }
+
+    if($Credential){
+        $p.Credential = $Credential
+    }
+    elseif($GitHubToken){
+        $p.GitHubToken = $GitHubToken
     }
 
     pspm-install @p -Force

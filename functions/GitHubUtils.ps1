@@ -9,14 +9,24 @@ function Get-RepositoryInfo {
         [string] $Repository,
 
         [Parameter()]
-        [PSCredential] $Credential
+        [PSCredential] $Credential,
+
+        [Parameter()]
+        [securestring] $Token
     )
 
     $apiEndpointURI = "https://api.github.com/repos/$Owner/$Repository"
 
     try {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-        $response = Invoke-WebRequest -Uri $apiEndpointURI -UseBasicParsing -ErrorAction Stop
+        if ($Credential) {
+            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -Credential $Credential -ErrorAction Stop
+        }
+        elseif ($Token) {
+            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -Token $Token -ErrorAction Stop
+        }
+        else {
+            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -ErrorAction Stop
+        }
         ConvertFrom-Json -InputObject $response.Content
     }
     catch {
@@ -38,19 +48,25 @@ function Get-CommitHash {
         [string] $Ref,
 
         [Parameter()]
-        [PSCredential] $Credential
-    )
+        [PSCredential] $Credential,
 
-    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        [Parameter()]
+        [securestring] $Token
+    )
 
     if (-not $Ref) {
         $paramHash = @{
             Owner      = $Owner
             Repository = $Repository
         }
+
         if ($Credential) {
             $paramHash.Credential = $Credential
         }
+        elseif ($Token) {
+            $paramHash.Token = $Token
+        }
+
         try {
             $repoInfo = Get-RepositoryInfo @paramHash -ErrorAction SilentlyContinue
         }
@@ -66,7 +82,16 @@ function Get-CommitHash {
 
     # Get commit info
     try {
-        $response = Invoke-WebRequest -Uri $apiEndpointURI -UseBasicParsing -ErrorAction Stop
+        if ($Credential) {
+            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -Credential $Credential -ErrorAction Stop
+        }
+        elseif ($Token) {
+            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -Token $Token -ErrorAction Stop
+        }
+        else {
+            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -ErrorAction Stop
+        }
+
         $commitInfo = ConvertFrom-Json -InputObject $response.Content
         if ($commitInfo.sha) {
             $commitInfo.sha
@@ -81,4 +106,94 @@ function Get-CommitHash {
 }
 
 
+function Get-Zipball {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory)]
+        [string] $Owner,
 
+        [Parameter(Mandatory)]
+        [string] $Repository,
+
+        [Parameter()]
+        [string] $Ref,
+
+        [Parameter(Mandatory)]
+        [string] $OutFile,
+
+        [Parameter()]
+        [PSCredential] $Credential,
+
+        [Parameter()]
+        [securestring] $Token
+    )
+
+    $zipUrl = ('https://api.github.com/repos/{0}/{1}/zipball/{2}' -f $Owner, $Repository, $Ref)
+
+    $paramHash = @{
+        Uri = $zipUrl
+        OutFile = $OutFile
+    }
+    if($Credential){
+        $paramHash.Credential = $Credential
+    }
+    elseif($Token){
+        $paramHash.Token = $Token
+    }
+
+    Invoke-MyWebRequest @paramHash
+}
+
+
+function Invoke-MyWebRequest {
+    [CmdletBinding(DefaultParameterSetName = 'None')]
+    param(
+        [Parameter(Mandatory, Position = 0)]
+        [uri] $URI,
+
+        [Parameter()]
+        [string] $OutFile,
+
+        [Parameter(ParameterSetName = 'BasicAuth')]
+        [pscredential] $Credential,
+
+        [Parameter(ParameterSetName = 'OAuth')]
+        [securestring] $Token
+    )
+
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+    [bool]$IsPSCore6 = [bool]((Get-Command Invoke-WebRequest).Parameters.Authentication)
+
+    $paramHash = @{
+        Uri = $URI
+    }
+
+    if($OutFile){
+        $paramHash.OutFile = $OutFile
+    }
+
+    if ($IsPSCore6) {
+        if ($PSCmdlet.ParameterSetName -eq 'BasicAuth') {
+            $paramHash.Authentication = 'Basic'
+            $paramHash.Credential = $Credential
+        }
+        elseif ($PSCmdlet.ParameterSetName -eq 'OAuth') {
+            $paramHash.Authentication = 'Bearer'
+            $paramHash.Token = $Token
+        }
+    }
+    else {
+        if ($PSCmdlet.ParameterSetName -eq 'BasicAuth') {
+            $private:base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(("{0}:{1}" -f $Credential.UserName, $Credential.GetNetworkCredential().Password)))
+            $paramHash.Headers = @{Authorization = ("Basic {0}" -f $private:base64AuthInfo)}
+        }
+        elseif ($PSCmdlet.ParameterSetName -eq 'OAuth') {
+            $private:BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($private:Token)
+            $private:PlainToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($private:BSTR)
+            $paramHash.Headers = @{Authorization = ("Bearer {0}" -f $private:PlainToken)}
+        }
+    }
+
+    Invoke-WebRequest @paramHash -UseBasicParsing
+}

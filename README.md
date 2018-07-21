@@ -12,8 +12,8 @@ You can manage PowerShell modules [npm](https://www.npmjs.com/) like commands.
 + Windows or macOS
 
 > Testing platforms:  
-> Windows 10 Pro x64 1803 with PowerShell 5.1 & PowerShell Core 6.0.2  
-> macOS High Sierra with PowerShell Core 6.1-preview.2
+> Windows 10 Pro x64 1803 with PowerShell 5.1 & PowerShell Core 6.0.3  
+> macOS High Sierra with PowerShell Core 6.1.0-preview.4
 
 ----
 ## Installation
@@ -56,7 +56,7 @@ pspm install '<Module Name>@<Version>'  # e.g) pspm install 'Pester@4.1.0'
 
 #### Tips: Get modules from GitHub :octocat:
 
-You can download modules from GitHub repos. (Public only)  
+You can download modules from GitHub repos.  
 Just `<user>/<repo-name>` or `<user>/<repo-name>#<ref>`.  
 `<ref>` as `branch` or `commit-hash` or `Tag`  
 
@@ -64,6 +64,18 @@ Just `<user>/<repo-name>` or `<user>/<repo-name>#<ref>`.
 pspm install '<user>/<repo-name>'
 pspm install '<user>/<repo-name>#<ref>'
 # e.g) pspm install 'pester/Pester#7aa9e63'
+```
+
+You should specify `Credential` or `GitHubToken` If you want to get modules from **private** repos.
+
+```PowerShell
+# Authenticate with Credential (username & password)
+pspm install '<user>/<private-repo-name>' -Credential (Get-Credential)
+
+# Authenticate with Personal access token
+# You should convert token to [SecureString]
+$SecureToken = ConvertTo-SecureString '<prain-token>' -AsPlainText -Force
+pspm install '<user>/<private-repo-name>' -GitHubToken $SecureToken
 ```
 
 
@@ -367,6 +379,8 @@ This is valid `package.json` sample.
 ----
 ## Change log
 + **Unreleased**
+  - Fixed issue that failed to download module from GitHub in macOS [#66](https://github.com/mkht/pspm/issues/66)
+  - Download from GitHub private repository [#12](https://github.com/mkht/pspm/issues/12)
   - When acquiring a module from GitHub, pspm will skip download if a module already exists.
   - Added `-NoImport` switch in `pspm install` & `pspm update` [#60](https://github.com/mkht/pspm/issues/60)
   - Fix PSSA issues
