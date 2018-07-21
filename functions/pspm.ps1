@@ -33,6 +33,9 @@ function pspm {
         [Parameter()]
         [switch]$Clean,
 
+        [Parameter()]
+        [switch]$NoImport,
+
         [Parameter(ParameterSetName = 'Run')]
         [Object[]]
         $Arguments,
@@ -72,6 +75,7 @@ function pspm {
         if ($Global) {$private:param.Add('Global', $Global)}
         if ($Save) {$private:param.Add('Save', $Save)}
         if ($Clean) {$private:param.Add('Clean', $Clean)}
+        if ($NoImport) {$private:param.Add('NoImport', $NoImport)}
 
         # run preinstall script
         pspm-run -CommandName 'preinstall' -IfPresent
@@ -95,6 +99,7 @@ function pspm {
         }
         if ($Scope) {$private:param.Add('Scope', $Scope)}
         if ($Global) {$private:param.Add('Global', $Global)}
+        if ($NoImport) {$private:param.Add('NoImport', $NoImport)}
 
         if ($PSBoundParameters.ContainsKey('Save')) {
             # Default Save parameter is $true in update
@@ -236,6 +241,9 @@ function pspm-install {
         [switch]$Clean,
 
         [Parameter()]
+        [switch]$NoImport,
+
+        [Parameter()]
         [switch]$Force
     )
 
@@ -291,8 +299,10 @@ function pspm-install {
         $local:targetModule = getModule @paramHash
     
         if ($local:targetModule) {
-            Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
-            Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
+            if (-not $NoImport) {
+                Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
+                Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
+            }
     
             if ($Save) {
                 if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
@@ -328,8 +338,10 @@ function pspm-install {
             $local:targetModule = getModule @paramHash
                     
             if ($local:targetModule) {
-                Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
-                Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
+                if (-not $NoImport) {
+                    Write-Host ('{0}@{1}: Importing module.' -f $local:targetModule.Name, $local:targetModule.ModuleVersion)
+                    Import-Module (Join-path $local:ModuleDir $local:targetModule.Name) -Force -Global -ErrorAction Stop
+                }
             }
         }
     }
