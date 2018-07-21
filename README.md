@@ -107,6 +107,16 @@ pspm install '<Module Name>' -Clean
 # WARNING: -Clean option will remove all modules in the Modules folder, NOT just the specified.
 ```
 
+
+#### Option: Disable modules import
+
+`pspm install` will import modules automatically after install.  
+If you don't like this behavior, Specify `-NoImport` switch. 
+
+```PowerShell
+pspm install '<Module Name>' -NoImport
+```
+
 ----
 ### Update Modules
 
@@ -356,6 +366,11 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **Unreleased**
+  - When acquiring a module from GitHub, pspm will skip download if a module already exists.
+  - Added `-NoImport` switch in `pspm install` & `pspm update` [#60](https://github.com/mkht/pspm/issues/60)
+  - Fix PSSA issues
+
 + **1.2.3**
   - Fixed issue that an older version of module has been installed unexpectedly on some environments. [#62](https://github.com/mkht/pspm/issues/62)
   - The pre-release tag comparison process was improved to be equal to [npm-semver](https://docs.npmjs.com/misc/semver#prerelease-tags) [#46](https://github.com/mkht/pspm/issues/46) [#47](https://github.com/mkht/pspm/issues/47)
