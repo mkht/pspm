@@ -122,7 +122,7 @@ function getModuleFromGitHub {
         [Parameter(Mandatory)]
         [string]
         $Name,
-        
+
         [Parameter(Mandatory)]
         [string]
         $Account,
@@ -136,12 +136,37 @@ function getModuleFromGitHub {
         $Path
     )
 
-    
     $TempDir = New-Item (Join-Path $env:TEMP '/pspm') -Force -ItemType Directory -ErrorAction Stop
     $TempName = [System.Guid]::NewGuid().toString() + '.zip'
+    $TargetDir = (Join-Path $Path $Name)
 
-    $zipUrl = ('https://api.github.com/repos/{0}/{1}/zipball/{2}' -f $Account, $Name, $Branch)
-    
+    # Get commit hash
+    $paramHash = @{Owner = $Account; Repository = $Name}
+    if ($Branch) {$paramHash.Ref = $Branch}
+    $CommitHash = Get-CommitHash @paramHash -ErrorAction SilentlyContinue
+
+    if (-not $CommitHash) {
+        throw 'Could not obtain repository info'
+        return
+    }
+
+    # Test whether the specified module already exists
+    if (Test-Path $TargetDir) {
+        $private:moduleInfo = Get-ModuleInfo $TargetDir
+        if ($private:moduleInfo.Name -eq $Name) {
+            if (Test-Path (Join-Path $TargetDir '.pspminfo')) {
+                $private:hash = Get-Content -Path (Join-Path $TargetDir '.pspminfo')
+                if ($private:hash -eq $CommitHash) {
+                    Write-Host ('{0}@{1}: Module already exists in Modules directory. Skip download.' -f $Name, $private:moduleInfo.ModuleVersion)
+                    $private:moduleInfo
+                    return
+                }
+            }
+        }
+    }
+
+    $zipUrl = ('https://api.github.com/repos/{0}/{1}/zipball/{2}' -f $Account, $Name, $CommitHash)
+
     try {
         #Download zip from GitHub
         [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
@@ -159,6 +184,9 @@ function getModuleFromGitHub {
                 Remove-Item -Path (Join-Path $Path $moduleInfo.Name) -Recurse -Force
             }
             $downloadedModule | Copy-Item -Destination (Join-Path $Path $moduleInfo.Name) -Recurse -Force -ErrorAction Stop
+
+            #Save commit hash info
+            $CommitHash | Out-File -FilePath (Join-Path (Join-Path $Path $moduleInfo.Name) '.pspminfo') -Force
 
             #Return module info
             $moduleInfo
