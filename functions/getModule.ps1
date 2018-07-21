@@ -17,7 +17,13 @@ function getModule {
         [Parameter(Mandatory)]
         [ValidateSet('Install', 'Update')]
         [string]
-        $CommandType
+        $CommandType,
+
+        [Parameter()]
+        [PSCredential] $Credential,
+
+        [Parameter()]
+        [securestring] $Token
     )
 
     Convert-Path -Path $Path -ErrorAction Stop > $null  #throw exception when the path not exist
@@ -35,6 +41,10 @@ function getModule {
         'GitHub' {
             $local:paramHash = $moduleType
             $paramHash.Remove('Type')
+
+            if ($Credential) {$paramHash.Credential = $Credential}
+            elseif ($Token) {$paramHash.Token = $Token}
+
             getModuleFromGitHub @paramHash -Path $Path
         }
 
@@ -133,7 +143,13 @@ function getModuleFromGitHub {
 
         [Parameter(Mandatory)]
         [string]
-        $Path
+        $Path,
+
+        [Parameter()]
+        [PSCredential] $Credential,
+
+        [Parameter()]
+        [securestring] $Token
     )
 
     $TempDir = New-Item (Join-Path $env:TEMP '/pspm') -Force -ItemType Directory -ErrorAction Stop
@@ -143,6 +159,8 @@ function getModuleFromGitHub {
     # Get commit hash
     $paramHash = @{Owner = $Account; Repository = $Name}
     if ($Branch) {$paramHash.Ref = $Branch}
+    if ($Credential) {$paramHash.Credential = $Credential}
+    elseif ($Token) {$paramHash.Token = $Token}
     $CommitHash = Get-CommitHash @paramHash -ErrorAction SilentlyContinue
 
     if (-not $CommitHash) {
@@ -165,13 +183,13 @@ function getModuleFromGitHub {
         }
     }
 
-    $zipUrl = ('https://api.github.com/repos/{0}/{1}/zipball/{2}' -f $Account, $Name, $CommitHash)
-
     try {
         #Download zip from GitHub
-        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
         Write-Host ('{0}: Downloading module from GitHub.' -f $Name)
-        Invoke-WebRequest -Uri $zipUrl -UseBasicParsing -OutFile (Join-Path $TempDir $TempName) -ErrorAction Stop
+        $paramHash = @{Owner = $Account; Repository = $Name; Ref = $CommitHash}
+        if ($Credential) {$paramHash.Credential = $Credential}
+        elseif ($Token) {$paramHash.Token = $Token}
+        Get-Zipball @paramHash -OutFile (Join-Path $TempDir $TempName) -ErrorAction Stop
 
         if (Test-Path (Join-Path $TempDir $TempName)) {
             Expand-Archive -Path (Join-Path $TempDir $TempName) -DestinationPath $TempDir
@@ -262,7 +280,7 @@ function getModuleFromPSGallery {
         $targetModule = $foundModules | Sort-Object -Property {[pspm.SemVer]$_.Version} -Descending | Select-Object -First 1
     }
     else {
-        $targetModule = $foundModules | Where-Object {($null-ne $_.Version) -and $SemVerRange.IsSatisfied($_.Version)} | Sort-Object -Property {[pspm.SemVer]$_.Version} -Descending | Select-Object -First 1
+        $targetModule = $foundModules | Where-Object {($null -ne $_.Version) -and $SemVerRange.IsSatisfied($_.Version)} | Sort-Object -Property {[pspm.SemVer]$_.Version} -Descending | Select-Object -First 1
     }
 
     if (($targetModule | Measure-Object).count -le 0) {
