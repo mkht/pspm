@@ -369,6 +369,10 @@ function pspm-update {
         $Global,
 
         [Parameter()]
+        [switch]
+        $NoImport,
+
+        [Parameter()]
         [bool]
         $Save = $true
     )
@@ -381,6 +385,10 @@ function pspm-update {
 
     if ($Scope) {
         $p.Scope = $Scope
+    }
+
+    if ($NoImport) {
+        $p.NoImport = $NoImport
     }
 
     pspm-install @p -Force
