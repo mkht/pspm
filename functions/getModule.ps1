@@ -152,7 +152,13 @@ function getModuleFromGitHub {
         [securestring] $Token
     )
 
-    $TempDir = New-Item (Join-Path $env:TEMP '/pspm') -Force -ItemType Directory -ErrorAction Stop
+    $PlatformTemp =
+    if ($env:TEMP) {$env:TEMP}
+    elseif ($env:TMPDIR) {$env:TMPDIR}
+    elseif (Test-Path '/tmp' -PathType Container) {'/tmp'}
+    else {throw 'Cannot find standard temp folder'}
+
+    $TempDir = New-Item (Join-Path $PlatformTemp '/pspm') -Force -ItemType Directory -ErrorAction Stop
     $TempName = [System.Guid]::NewGuid().toString() + '.zip'
     $TargetDir = (Join-Path $Path $Name)
 
@@ -164,7 +170,7 @@ function getModuleFromGitHub {
     $CommitHash = Get-CommitHash @paramHash -ErrorAction SilentlyContinue
 
     if (-not $CommitHash) {
-        throw 'Could not obtain repository info'
+        throw 'Cannot not get repository info'
         return
     }
 

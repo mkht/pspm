@@ -379,6 +379,7 @@ This is valid `package.json` sample.
 ----
 ## Change log
 + **Unreleased**
+  - Fixed issue that failed to download module from GitHub in macOS [#66](https://github.com/mkht/pspm/issues/66)
   - Download from GitHub private repository [#12](https://github.com/mkht/pspm/issues/12)
   - When acquiring a module from GitHub, pspm will skip download if a module already exists.
   - Added `-NoImport` switch in `pspm install` & `pspm update` [#60](https://github.com/mkht/pspm/issues/60)
