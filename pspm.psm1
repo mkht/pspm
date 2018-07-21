@@ -22,6 +22,7 @@ $FunctionList = @(
     'Get-PackageJson.ps1'
     'Get-PSModulePath.ps1'
     'Get-ModuleInfo.ps1'
+    'GitHubUtils.ps1'
     'getModule.ps1'
     'pspm.ps1'
 )
