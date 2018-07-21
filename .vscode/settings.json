@@ -3,5 +3,11 @@
         "editor.tabSize": 2,
         "editor.detectIndentation": false,
     },
-    "diffEditor.ignoreTrimWhitespace": false
+    "[markdown]": {
+        "editor.trimAutoWhitespace": false,
+        "files.trimTrailingWhitespace": false
+    },
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.trimAutoWhitespace": true,
+    "files.trimTrailingWhitespace": true
 }

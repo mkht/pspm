@@ -96,7 +96,7 @@ try {
         }
 
         Context 'Properties validation test' {
-                
+
             It 'Major should be >=0 && <=[int]::MaxValue' {
                 { [pspm.SemVer]::new(-1)} | Should -Throw
                 { [pspm.SemVer]::new(0)} | Should -Not -Throw
@@ -140,33 +140,33 @@ try {
 
             It 'Major should be read-only' {
                 $semver = [pspm.SemVer]::new(1)
-                {$semver.Major = 123} | Should -Throw                    
+                {$semver.Major = 123} | Should -Throw
             }
 
             It 'Minor should be read-only' {
                 $semver = [pspm.SemVer]::new(1)
-                {$semver.Minor = 123} | Should -Throw                    
+                {$semver.Minor = 123} | Should -Throw
             }
 
             It 'Patch should be read-only' {
                 $semver = [pspm.SemVer]::new(1)
-                {$semver.Patch = 123} | Should -Throw                    
+                {$semver.Patch = 123} | Should -Throw
             }
 
             It 'Revision should be read-only' {
                 $semver = [pspm.SemVer]::new(1)
-                {$semver.Revision = 123} | Should -Throw                    
+                {$semver.Revision = 123} | Should -Throw
             }
 
             It 'PreReleaseLabel should be read-only' {
                 $semver = [pspm.SemVer]::new(1)
-                {$semver.PreReleaseLabel = 'foo'} | Should -Throw                    
+                {$semver.PreReleaseLabel = 'foo'} | Should -Throw
             }
 
             It 'BuildLabel should be read-only' {
                 $semver = [pspm.SemVer]::new(1)
-                {$semver.BuildLabel = 'foo'} | Should -Throw                    
-            }                
+                {$semver.BuildLabel = 'foo'} | Should -Throw
+            }
         }
 
         Context 'ToString()' {
@@ -336,7 +336,7 @@ try {
         }
 
         Context 'Equals()' {
-                
+
             It 'If parameter is null, should return False' {
                 [pspm.SemVer]::new(1).Equals($null) | Should -Not -BeTrue
             }
@@ -376,7 +376,7 @@ try {
         }
 
         Context 'static members' {
-                
+
             It '[pspm.SemVer]::Max indicates maximum semver' {
                 ([pspm.SemVer]::Max -eq [pspm.SemVer]::new([int]::MaxValue, [int]::MaxValue, [int]::MaxValue, [int]::MaxValue)) | Should -BeTrue
             }

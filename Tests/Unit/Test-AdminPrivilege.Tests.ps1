@@ -43,7 +43,7 @@ try {
 
             Context 'Not Windows' {
                 Mock Test-IsWindows {$false}
-                
+
                 It 'return $true' {
                     Test-AdminPrivilege | Should -Be $true
                 }

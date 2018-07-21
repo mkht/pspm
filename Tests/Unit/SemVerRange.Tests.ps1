@@ -291,7 +291,7 @@ try {
             }
 
             Context 'Intersection sets' {
-                
+
                 It '<1.0.0 >2.0.0 := <0.0.0 (no intersection 1)' {
                     $range = [pspm.SemVerRange]::new('<1.0.0 >2.0.0')
                     $range.MaximumVersion | Should -Be ([pspm.SemVer]::Min)
@@ -348,7 +348,7 @@ try {
             }
 
             Context 'Union sets' {
-                
+
                 It '1.0.0 || 2.0.0' {
                     $range = [pspm.SemVerRange]::new('1.0.0 || 2.0.0')
                     $range.RangeSet[0].Expression | Should -Be '1.0.0'
@@ -632,7 +632,7 @@ try {
 
 
         Context 'ToString()' {
-           
+
             It 'return expression string' {
                 ([pspm.SemVerRange]::new('1.0.0', '2.0.0')).ToString() | Should -Be '>=1.0.0 <=2.0.0'
             }

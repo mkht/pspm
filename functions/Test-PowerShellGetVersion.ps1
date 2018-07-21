@@ -1,5 +1,5 @@
 $script:WarningMessage = @"
-The PowerShellGet module installed in this system is older version. 
+The PowerShellGet module installed in this system is older version.
 We strongly recommend updating to the latest version to improve compatibility and stability.
 
 To update PowerShellGet use the following command and restart PowerShell:

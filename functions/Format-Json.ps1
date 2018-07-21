@@ -7,7 +7,7 @@ function Format-Json {
         [Parameter(Mandatory, ValueFromPipeline)]
         [String]
         $json
-    ) 
+    )
 
     $indent = 0;
     $result = ($json -Split '\n' |
@@ -23,8 +23,7 @@ function Format-Json {
             }
             $line
         }) -Join "`n"
-    
+
     # Unescape Html characters (<>&')
     $result.Replace('\u0027', "'").Replace('\u003c', "<").Replace('\u003e', ">").Replace('\u0026', "&")
-    
 }
