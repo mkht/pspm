@@ -66,15 +66,17 @@ pspm install '<user>/<repo-name>#<ref>'
 # e.g) pspm install 'pester/Pester#7aa9e63'
 ```
 
-You should specify `Credential` or `GitHubToken` If you want to get modules from **private** repos.
+You can specify `Credential` or `GitHubToken` If you want to get modules from **private** repos.
+Also, if an environment variable `GITHUB_TOKEN` is present, pspm uses it as GitHub Personal Access Token.
+(Priority: `Credential` > `GitHubToken` > `GITHUB_TOKEN`)
 
 ```PowerShell
 # Authenticate with Credential (username & password)
 pspm install '<user>/<private-repo-name>' -Credential (Get-Credential)
 
-# Authenticate with Personal access token
+# Authenticate with Personal Access Token
 # You should convert token to [SecureString]
-$SecureToken = ConvertTo-SecureString '<prain-token>' -AsPlainText -Force
+$SecureToken = ConvertTo-SecureString '<plain-token>' -AsPlainText -Force
 pspm install '<user>/<private-repo-name>' -GitHubToken $SecureToken
 ```
 
@@ -378,6 +380,11 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **Unreleased**
+  - If an environment variable `GITHUB_TOKEN` is present, pspm uses it as GitHub PAT
+  - Exceptions at installing modules has been changed to non-terminating error
+  - Improved error messages
+
 + **1.3.0**
   - Fixed issue that failed to download module from GitHub in macOS [#66](https://github.com/mkht/pspm/issues/66)
   - Download from GitHub private repository [#12](https://github.com/mkht/pspm/issues/12)
