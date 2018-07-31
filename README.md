@@ -66,8 +66,8 @@ pspm install '<user>/<repo-name>#<ref>'
 # e.g) pspm install 'pester/Pester#7aa9e63'
 ```
 
-You can specify `Credential` or `GitHubToken` If you want to get modules from **private** repos.
-Also, if an environment variable `GITHUB_TOKEN` is present, pspm uses it as GitHub Personal Access Token.
+You can specify `Credential` or `GitHubToken` If you want to get modules from **private** repos.  
+Also, if an environment variable `GITHUB_TOKEN` is present, pspm uses it as GitHub Personal Access Token.  
 (Priority: `Credential` > `GitHubToken` > `GITHUB_TOKEN`)
 
 ```PowerShell
