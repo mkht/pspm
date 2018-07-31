@@ -415,10 +415,10 @@ function pspm-update {
         $p.NoImport = $NoImport
     }
 
-    if($Credential){
+    if ($Credential) {
         $p.Credential = $Credential
     }
-    elseif($GitHubToken){
+    elseif ($GitHubToken) {
         $p.GitHubToken = $GitHubToken
     }
 
