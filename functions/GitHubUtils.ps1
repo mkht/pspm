@@ -19,13 +19,13 @@ function Get-RepositoryInfo {
 
     try {
         if ($Credential) {
-            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -Credential $Credential -ErrorAction Stop
+            $response = Invoke-GitHubRequest -Uri $apiEndpointURI -Credential $Credential -ErrorAction Stop
         }
         elseif ($Token) {
-            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -Token $Token -ErrorAction Stop
+            $response = Invoke-GitHubRequest -Uri $apiEndpointURI -Token $Token -ErrorAction Stop
         }
         else {
-            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -ErrorAction Stop
+            $response = Invoke-GitHubRequest -Uri $apiEndpointURI -ErrorAction Stop
         }
         ConvertFrom-Json -InputObject $response.Content
     }
@@ -83,13 +83,13 @@ function Get-CommitHash {
     # Get commit info
     try {
         if ($Credential) {
-            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -Credential $Credential -ErrorAction Stop
+            $response = Invoke-GitHubRequest -Uri $apiEndpointURI -Credential $Credential -ErrorAction Stop
         }
         elseif ($Token) {
-            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -Token $Token -ErrorAction Stop
+            $response = Invoke-GitHubRequest -Uri $apiEndpointURI -Token $Token -ErrorAction Stop
         }
         else {
-            $response = Invoke-MyWebRequest -Uri $apiEndpointURI -ErrorAction Stop
+            $response = Invoke-GitHubRequest -Uri $apiEndpointURI -ErrorAction Stop
         }
 
         $commitInfo = ConvertFrom-Json -InputObject $response.Content
@@ -141,11 +141,11 @@ function Get-Zipball {
         $paramHash.Token = $Token
     }
 
-    Invoke-MyWebRequest @paramHash
+    Invoke-GitHubRequest @paramHash
 }
 
 
-function Invoke-MyWebRequest {
+function Invoke-GitHubRequest {
     [CmdletBinding(DefaultParameterSetName = 'None')]
     param(
         [Parameter(Mandatory, Position = 0)]
