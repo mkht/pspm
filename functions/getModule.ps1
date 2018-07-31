@@ -201,7 +201,7 @@ function getModuleFromGitHub {
             Expand-Archive -Path (Join-Path $TempDir $TempName) -DestinationPath $TempDir
             $downloadedModule = Get-ChildItem -Path $TempDir -Filter ('{0}-{1}*' -f $Account, $Name) -Directory
 
-            $moduleInfo = $downloadedModule.PsPath | Get-Moduleinfo
+            $moduleInfo = $downloadedModule.PsPath | Get-ModuleInfo
 
             #Copy to /Modules folder
             if (Test-Path (Join-Path $Path $moduleInfo.Name)) {
