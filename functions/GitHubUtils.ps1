@@ -68,11 +68,15 @@ function Get-CommitHash {
         }
 
         try {
-            $repoInfo = Get-RepositoryInfo @paramHash -ErrorAction SilentlyContinue
+            $repoInfo = Get-RepositoryInfo @paramHash -ErrorAction Stop
         }
-        catch {}
+        catch {
+            throw
+            return
+        }
+
         if (-not $repoInfo) {
-            Write-Error 'Repository not found'
+            throw 'Repository not found'
             return
         }
         $Ref = $repoInfo.default_branch
@@ -101,7 +105,7 @@ function Get-CommitHash {
         }
     }
     catch {
-        Write-Error $_.Exception.Message
+        throw
     }
 }
 
@@ -131,13 +135,13 @@ function Get-Zipball {
     $zipUrl = ('https://api.github.com/repos/{0}/{1}/zipball/{2}' -f $Owner, $Repository, $Ref)
 
     $paramHash = @{
-        Uri = $zipUrl
+        Uri     = $zipUrl
         OutFile = $OutFile
     }
-    if($Credential){
+    if ($Credential) {
         $paramHash.Credential = $Credential
     }
-    elseif($Token){
+    elseif ($Token) {
         $paramHash.Token = $Token
     }
 
@@ -169,7 +173,7 @@ function Invoke-GitHubRequest {
         Uri = $URI
     }
 
-    if($OutFile){
+    if ($OutFile) {
         $paramHash.OutFile = $OutFile
     }
 
@@ -195,5 +199,29 @@ function Invoke-GitHubRequest {
         }
     }
 
-    Invoke-WebRequest @paramHash -UseBasicParsing
+    try {
+        Invoke-WebRequest @paramHash -UseBasicParsing
+    }
+    catch {
+        $errorResponse = $_.Exception.Response
+        $errorResponseStream = $errorResponse.GetResponseStream()
+        $errorResponseStream.Seek(0, [System.IO.SeekOrigin]::Begin)
+        $streamReader = New-Object System.IO.StreamReader $errorResponseStream
+        $message = $streamReader.ReadToEnd()
+        if ($message) {
+            $messageObject = ConvertFrom-Json -InputObject $message -ErrorAction SilentlyContinue
+            if ($messageObject.message) {
+                $message = $messageObject.message
+            }
+            throw ('Remote server returned error ({0}). Message : {1}' -f $errorResponse.StatusCode.Value__, $message)
+        }
+        else {
+            throw
+        }
+    }
+    finally {
+        if ($streamReader) {
+            $streamReader.Dispose()
+        }
+    }
 }

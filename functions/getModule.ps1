@@ -156,7 +156,7 @@ function getModuleFromGitHub {
     if ($env:TEMP) {$env:TEMP}
     elseif ($env:TMPDIR) {$env:TMPDIR}
     elseif (Test-Path '/tmp' -PathType Container) {'/tmp'}
-    else {throw 'Could not find standard temp folder'}
+    else {Write-Error 'Could not find standard temp folder'; return}
 
     $TempDir = New-Item (Join-Path $PlatformTemp '/pspm') -Force -ItemType Directory -ErrorAction Stop
     $TempName = [System.Guid]::NewGuid().toString() + '.zip'
@@ -167,10 +167,17 @@ function getModuleFromGitHub {
     if ($Branch) {$paramHash.Ref = $Branch}
     if ($Credential) {$paramHash.Credential = $Credential}
     elseif ($Token) {$paramHash.Token = $Token}
-    $CommitHash = Get-CommitHash @paramHash -ErrorAction SilentlyContinue
+
+    try {
+        $CommitHash = Get-CommitHash @paramHash -ErrorAction Stop
+    }
+    catch {
+        Write-Error $_.Exception
+        return
+    }
 
     if (-not $CommitHash) {
-        throw 'Could not get repository info'
+        Write-Error 'Could not get repository info'
         return
     }
 
@@ -216,11 +223,11 @@ function getModuleFromGitHub {
             $moduleInfo
         }
         else {
-            throw 'Download failed!'
+            Write-Error 'Download failed!'
         }
     }
     catch {
-        throw $_.Exception
+        Write-Error $_.Exception
     }
     finally {
         if (Test-Path $TempDir) {
