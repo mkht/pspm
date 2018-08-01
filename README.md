@@ -380,7 +380,7 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
-+ **Unreleased**
++ **1.4.0**
   - If an environment variable `GITHUB_TOKEN` is present, pspm uses it as GitHub PAT
   - Exceptions at installing modules has been changed to non-terminating error
   - Improved error messages
