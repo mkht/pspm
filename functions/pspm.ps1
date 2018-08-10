@@ -552,10 +552,12 @@ function pspm-run {
 
             # Invoke script
             try {
+                pspm-load
                 $local:ScriptBlock = [scriptblock]::Create($PackageJson.scripts.($CommandName))
                 $local:ScriptBlock.Invoke($Arguments)
             }
             finally {
+                pspm-unload
                 Set-Location -Path $local:CurrentDir
             }
         }
