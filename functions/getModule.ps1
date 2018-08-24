@@ -278,9 +278,9 @@ function getModuleFromPSGallery {
     if ((-not $Latest) -and (-not $Force)) {
         if (Test-Path (Join-path $Path $Name)) {
             $local:moduleInfo = Get-ModuleInfo -Path (Join-path $Path $Name) -ErrorAction SilentlyContinue
-            if ($SemVerRange.IsSatisfied($moduleInfo.ModuleVersion)) {
+            if ($local:moduleInfo -and $SemVerRange.IsSatisfied($local:moduleInfo.ModuleVersion)) {
                 # Already exist
-                Write-Host ('{0}@{1}: Module already exists in Modules directory. Skip download.' -f $Name, $moduleInfo.ModuleVersion)
+                Write-Host ('{0}@{1}: Module already exists in Modules directory. Skip download.' -f $Name, $local:moduleInfo.ModuleVersion)
                 $moduleInfo
                 return
             }
