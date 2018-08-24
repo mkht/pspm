@@ -380,6 +380,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.4.1**
+  - Fixed an issue that an error occurs when acquiring a module if invalid folders or files exists in the Modules folder  [#71](https://github.com/mkht/pspm/issues/71)
+
 + **1.4.0**
   - If an environment variable `GITHUB_TOKEN` is present, pspm uses it as GitHub PAT
   - Exceptions at installing modules has been changed to non-terminating error

@@ -1,6 +1,6 @@
 @{
     # Version number of this module.
-    ModuleVersion     = '1.4.0'
+    ModuleVersion     = '1.4.1'
 
     # ID used to uniquely identify this module
     GUID              = '43b54a10-c2d7-45b1-b46f-9a9da9da1c39'
@@ -47,7 +47,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = ''
+            ReleaseNotes = 'Fixed an issue that an error occurs when acquiring a module if invalid folders or files exists in the Modules folder'
 
         } # End of PSData hashtable
 
