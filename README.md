@@ -28,7 +28,7 @@ We strongly recommend using the latest PowerShellGet module to improve compatibi
 To update PowerShellGet use the following command and restart PowerShell.  
 
 ```PowerShell
-Install-Module PowerShellGet -Force
+Install-Module PowerShellGet -Force -AllowClobber
 ```
 
 ----
