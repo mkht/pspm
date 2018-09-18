@@ -313,7 +313,9 @@ function pspm-install {
 
         if ($Credential) {$paramHash.Credential = $Credential}
         elseif ($GitHubToken) {$paramHash.Token = $GitHubToken}
-        elseif ($env:GITHUB_TOKEN) {$paramHash.Token = $env:GITHUB_TOKEN}
+        elseif ($env:GITHUB_TOKEN) {
+            $paramHash.Token = (ConvertTo-SecureString -String $env:GITHUB_TOKEN -AsPlainText -Force)
+        }
 
         $local:targetModule = getModule @paramHash
 
