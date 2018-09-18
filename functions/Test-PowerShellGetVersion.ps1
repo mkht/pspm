@@ -3,7 +3,7 @@ The PowerShellGet module installed in this system is older version.
 We strongly recommend updating to the latest version to improve compatibility and stability.
 
 To update PowerShellGet use the following command and restart PowerShell:
-    Install-Module PowerShellGet -Force
+    Install-Module PowerShellGet -Force -AllowClobber
 
 "@
 
