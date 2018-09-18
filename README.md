@@ -18,7 +18,7 @@ You can manage PowerShell modules [npm](https://www.npmjs.com/) like commands.
 ----
 ## Installation
 
-You can install pspm through [PowerShell Gallery](https://www.powershellgallery.com/packages/pspm/).
+You can install pspm from [PowerShell Gallery](https://www.powershellgallery.com/packages/pspm/).
 ```Powershell
 Install-Module -Name pspm
 ```
@@ -380,6 +380,10 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.4.2**
+  - Fixed issue that an environment variable `GITHUB_TOKEN` is not working properly.
+  - Improve help messages.
+
 + **1.4.1**
   - Fixed an issue that an error occurs when acquiring a module if invalid folders or files exists in the Modules folder  [#71](https://github.com/mkht/pspm/issues/71)
 
