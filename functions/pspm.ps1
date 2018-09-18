@@ -314,6 +314,7 @@ function pspm-install {
         if ($Credential) {$paramHash.Credential = $Credential}
         elseif ($GitHubToken) {$paramHash.Token = $GitHubToken}
         elseif ($env:GITHUB_TOKEN) {
+            Write-Verbose ('ENV:GITHUB_TOKEN is found. Will use this value for GitHub access token.')
             $paramHash.Token = (ConvertTo-SecureString -String $env:GITHUB_TOKEN -AsPlainText -Force)
         }
 
