@@ -380,6 +380,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.4.3**
+  - Improve verbose messages.
+
 + **1.4.2**
   - Fixed issue that an environment variable `GITHUB_TOKEN` is not working properly.
   - Improve help messages.
