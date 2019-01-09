@@ -1,6 +1,6 @@
 @{
     # Version number of this module.
-    ModuleVersion     = '1.4.3'
+    ModuleVersion     = '1.4.4'
 
     # ID used to uniquely identify this module
     GUID              = '43b54a10-c2d7-45b1-b46f-9a9da9da1c39'
@@ -47,7 +47,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'Fixed an issue that an error occurs when acquiring a module if invalid folders or files exists in the Modules folder'
+            ReleaseNotes = 'Fixed issue that GitHub credential params are not used when downloading modules using package.json'
 
         } # End of PSData hashtable
 
