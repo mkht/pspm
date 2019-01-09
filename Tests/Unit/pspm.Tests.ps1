@@ -120,11 +120,43 @@ try {
                     Assert-MockCalled -CommandName Import-Module -Times 1 -Exactly -Scope It
                 }
 
+                It 'Get module only when the NoImport switch specified' {
+                    { pspm install $MockModuleName1 -NoImport } | Should -Not -Throw
+
+                    Assert-MockCalled -CommandName getModule -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Import-Module -Times 0 -Exactly -Scope It
+                }
+
                 It 'Write-Error when an exception occurred' {
                     Mock getModule { throw 'Some exception' } -ParameterFilter {$Version -eq 'invalid_module'}
                     { pspm install 'invalid_module' -ea Stop} | Should -Throw
 
                     Assert-MockCalled -CommandName Import-Module -Times 0 -Scope It
+                }
+
+                It 'pspm install with Credential parameter' {
+                    $TestCredential = [pscredential]::new('testName', (ConvertTo-SecureString -String 'testPassword' -AsPlainText -Force))
+
+                    { pspm install $MockModuleName1 -Credential $TestCredential } | Should -Not -Throw
+                    Assert-MockCalled -CommandName getModule -Times 1 -Exactly -ParameterFilter {$Credential.UserName -eq 'testName'} -Scope It
+                }
+
+                It 'pspm install with GitHubToken parameter' {
+                    $GitHubToken = ConvertTo-SecureString -String '0123456789abcdef' -AsPlainText -Force
+
+                    { pspm install $MockModuleName1 -GitHubToken $GitHubToken } | Should -Not -Throw
+                    Assert-MockCalled -CommandName getModule -Times 1 -Exactly -ParameterFilter {$Token -eq $GitHubToken} -Scope It
+
+                    Remove-Variable -Name GitHubToken
+                }
+
+                It 'pspm install with $Env:GITHUB_TOKEN' {
+                    $env:GITHUB_TOKEN = 'aaabbbcccdddeeefff'
+
+                    {pspm install $MockModuleName1} | Should -Not -Throw
+                    Assert-MockCalled -CommandName getModule -Times 1 -Exactly -ParameterFilter {$Token} -Scope It
+
+                    Remove-Item Env:\GITHUB_TOKEN
                 }
 
                 Context 'pspm install <module name> -Save' {
@@ -175,6 +207,14 @@ try {
                     Assert-MockCalled -CommandName Import-Module -Times 1 -Exactly -Scope It
                 }
 
+                It 'Load ./package.json & Get module only when the NoImport specified' {
+                    New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1) -Force
+                    { pspm install -NoImport } | Should -Not -Throw
+
+                    Assert-MockCalled -CommandName getModule -Times 1 -Exactly -Scope It
+                    Assert-MockCalled -CommandName Import-Module -Times 0 -Exactly -Scope It
+                }
+
                 It 'Load ./package.json & Get multiple modules & Import it' {
                     New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson2 -f $MockModuleName1, $MockModuleVersion1, $MockModuleName2, $MockModuleVersion2) -Force
                     { pspm install } | Should -Not -Throw
@@ -195,6 +235,34 @@ try {
                     { pspm install -ea Stop } | Should -Throw
 
                     Assert-MockCalled -CommandName Import-Module -Times 0 -Scope It
+                }
+
+                It 'pspm install with Credential parameter' {
+                    New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1) -Force
+                    $TestCredential = [pscredential]::new('testName', (ConvertTo-SecureString -String 'testPassword' -AsPlainText -Force))
+
+                    { pspm install -Credential $TestCredential } | Should -Not -Throw
+                    Assert-MockCalled -CommandName getModule -Times 1 -Exactly -ParameterFilter {$Credential.UserName -eq 'testName'} -Scope It
+                }
+
+                It 'pspm install with GitHubToken parameter' {
+                    New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1) -Force
+                    $GitHubToken = ConvertTo-SecureString -String '0123456789abcdef' -AsPlainText -Force
+
+                    { pspm install -GitHubToken $GitHubToken } | Should -Not -Throw
+                    Assert-MockCalled -CommandName getModule -Times 1 -Exactly -ParameterFilter {$Token -eq $GitHubToken} -Scope It
+
+                    Remove-Variable -Name GitHubToken
+                }
+
+                It 'pspm install with $Env:GITHUB_TOKEN' {
+                    New-Item -Path 'TestDrive:/package.json' -Value ($ValidPackageJson1 -f $MockModuleName1, $MockModuleVersion1) -Force
+                    $env:GITHUB_TOKEN = 'aaabbbcccdddeeefff'
+
+                    {pspm install} | Should -Not -Throw
+                    Assert-MockCalled -CommandName getModule -Times 1 -Exactly -ParameterFilter {$Token} -Scope It
+
+                    Remove-Item Env:\GITHUB_TOKEN
                 }
             }
 

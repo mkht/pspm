@@ -380,6 +380,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **Unreleased**
+  - Fixed issue that GitHub credential params are not used when downloading modules using `package.json` [#72](https://github.com/mkht/pspm/issues/72)
+
 + **1.4.3**
   - Improve verbose messages.
 

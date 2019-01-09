@@ -299,6 +299,12 @@ function pspm-install {
         Get-ChildItem -Path $local:ModuleDir -Directory | Remove-Item -Recurse -Force
     }
 
+    # Retrieve GitHub access token from environment variables
+    if ((-not $GitHubToken) -and ($env:GITHUB_TOKEN)) {
+        Write-Verbose ('ENV:GITHUB_TOKEN found. Will use this value for GitHub access token.')
+        $GitHubToken = (ConvertTo-SecureString -String $env:GITHUB_TOKEN -AsPlainText -Force)
+    }
+
     # Add Module path to $env:PSModulePath
     pspm-load
 
@@ -311,11 +317,11 @@ function pspm-install {
             CommandType = if ($Force) {'Update'} else {'Install'}
         }
 
-        if ($Credential) {$paramHash.Credential = $Credential}
-        elseif ($GitHubToken) {$paramHash.Token = $GitHubToken}
-        elseif ($env:GITHUB_TOKEN) {
-            Write-Verbose ('ENV:GITHUB_TOKEN is found. Will use this value for GitHub access token.')
-            $paramHash.Token = (ConvertTo-SecureString -String $env:GITHUB_TOKEN -AsPlainText -Force)
+        if ($Credential) {
+            $paramHash.Credential = $Credential
+        }
+        elseif ($GitHubToken) {
+            $paramHash.Token = $GitHubToken
         }
 
         $local:targetModule = getModule @paramHash
@@ -355,6 +361,13 @@ function pspm-install {
                 Version     = $local:moduleVersion
                 Path        = $local:ModuleDir
                 CommandType = if ($Force) {'Update'} else {'Install'}
+            }
+
+            if ($Credential) {
+                $paramHash.Credential = $Credential
+            }
+            elseif ($GitHubToken) {
+                $paramHash.Token = $GitHubToken
             }
 
             $local:targetModule = getModule @paramHash
