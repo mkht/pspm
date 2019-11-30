@@ -270,7 +270,7 @@ function getModuleFromPSGallery {
             $SemVerRange = [pspm.SemVerRange]::new($Version) #throw exception on parse error
         }
         catch {
-            throw
+            Write-Error -Exception $_.Exception
             return
         }
     }
