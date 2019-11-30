@@ -158,8 +158,8 @@ function getModuleFromGitHub {
     elseif (Test-Path '/tmp' -PathType Container) { '/tmp' }
     else { Write-Error 'Could not find standard temp folder'; return }
 
-    $TempDir = New-Item (Join-Path $PlatformTemp '/pspm') -Force -ItemType Directory -ErrorAction Stop
-    $TempName = [System.Guid]::NewGuid().toString() + '.zip'
+    $TempDir = New-Item (Join-Path $PlatformTemp ([System.IO.Path]::GetRandomFileName())) -Force -ItemType Directory -ErrorAction Stop
+    $TempName = [System.IO.Path]::GetRandomFileName() + '.zip'
     $TargetDir = (Join-Path $Path $Name)
 
     # Get commit hash
