@@ -380,6 +380,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.4.5**
+  - Fixed issue that an error occurs when the `pspm install` command was executed simultaneously in multiple processes.
+  
 + **1.4.4**
   - Fixed issue that GitHub credential params are not used when downloading modules using `package.json` [#72](https://github.com/mkht/pspm/issues/72)
 

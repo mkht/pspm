@@ -1,6 +1,6 @@
 @{
     # Version number of this module.
-    ModuleVersion     = '1.4.4'
+    ModuleVersion     = '1.4.5'
 
     # ID used to uniquely identify this module
     GUID              = '43b54a10-c2d7-45b1-b46f-9a9da9da1c39'
@@ -15,7 +15,7 @@
     CompanyName       = ''
 
     # Copyright statement for this module
-    Copyright         = '(c) 2018 mkht. All rights reserved.'
+    Copyright         = '(c) 2019 mkht. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description       = 'PowerShell Package Manager'
@@ -47,7 +47,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'Fixed issue that GitHub credential params are not used when downloading modules using package.json'
+            ReleaseNotes = 'Fixed issue that an error occurs when the `pspm install` command was executed simultaneously in multiple processes.'
 
         } # End of PSData hashtable
 
