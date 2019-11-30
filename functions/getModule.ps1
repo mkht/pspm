@@ -172,7 +172,7 @@ function getModuleFromGitHub {
         $CommitHash = Get-CommitHash @paramHash -ErrorAction Stop
     }
     catch {
-        Write-Error $_.Exception
+        Write-Error -Exception $_.Exception
         return
     }
 
@@ -227,7 +227,7 @@ function getModuleFromGitHub {
         }
     }
     catch {
-        Write-Error $_.Exception
+        Write-Error -Exception $_.Exception
     }
     finally {
         if (Test-Path $TempDir) {
