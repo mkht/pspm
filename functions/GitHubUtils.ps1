@@ -167,7 +167,7 @@ function Invoke-GitHubRequest {
 
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
-    [bool]$IsPSCore6 = [bool]((Get-Command Invoke-WebRequest).Parameters.Authentication)
+    [bool]$IsPS6Plus = [bool]((Get-Command Invoke-WebRequest).Parameters.Authentication)
 
     $paramHash = @{
         Uri = $URI
@@ -177,22 +177,26 @@ function Invoke-GitHubRequest {
         $paramHash.OutFile = $OutFile
     }
 
-    if ($IsPSCore6) {
+    if ($IsPS6Plus) {
         if ($PSCmdlet.ParameterSetName -eq 'BasicAuth') {
+            Write-Verbose ('Request to GitHub using credential (user:{0})' -f $Credential.UserName)
             $paramHash.Authentication = 'Basic'
             $paramHash.Credential = $Credential
         }
         elseif ($PSCmdlet.ParameterSetName -eq 'OAuth') {
+            Write-Verbose ('Request to GitHub using token')
             $paramHash.Authentication = 'Bearer'
             $paramHash.Token = $Token
         }
     }
     else {
         if ($PSCmdlet.ParameterSetName -eq 'BasicAuth') {
+            Write-Verbose ('Request to GitHub using credential (user:{0})' -f $Credential.UserName)
             $private:base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(("{0}:{1}" -f $Credential.UserName, $Credential.GetNetworkCredential().Password)))
             $paramHash.Headers = @{Authorization = ("Basic {0}" -f $private:base64AuthInfo) }
         }
         elseif ($PSCmdlet.ParameterSetName -eq 'OAuth') {
+            Write-Verbose ('Request to GitHub using token')
             $private:BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($private:Token)
             $private:PlainToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($private:BSTR)
             $paramHash.Headers = @{Authorization = ("Bearer {0}" -f $private:PlainToken) }
