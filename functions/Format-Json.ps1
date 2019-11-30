@@ -11,7 +11,7 @@ function Format-Json {
 
     $indent = 0;
     $result = ($json -Split '\n' |
-            % {
+        % {
             if ($_ -match '[\}\]]') {
                 # This line contains  ] or }, decrement the indentation level
                 $indent--

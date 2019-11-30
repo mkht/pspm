@@ -77,14 +77,14 @@ function pspm {
         [HashTable]$private:param = @{
             Name = $Name
         }
-        if ($Scope) {$private:param.Add('Scope', $Scope)}
-        if ($Global) {$private:param.Add('Global', $Global)}
-        if ($Save) {$private:param.Add('Save', $Save)}
-        if ($Clean) {$private:param.Add('Clean', $Clean)}
-        if ($NoImport) {$private:param.Add('NoImport', $NoImport)}
+        if ($Scope) { $private:param.Add('Scope', $Scope) }
+        if ($Global) { $private:param.Add('Global', $Global) }
+        if ($Save) { $private:param.Add('Save', $Save) }
+        if ($Clean) { $private:param.Add('Clean', $Clean) }
+        if ($NoImport) { $private:param.Add('NoImport', $NoImport) }
 
-        if ($Credential) {$private:param.Add('Credential', $Credential)}
-        elseif ($GitHubToken) {$private:param.Add('GitHubToken', $GitHubToken)}
+        if ($Credential) { $private:param.Add('Credential', $Credential) }
+        elseif ($GitHubToken) { $private:param.Add('GitHubToken', $GitHubToken) }
 
         # run preinstall script
         pspm-run -CommandName 'preinstall' -IfPresent
@@ -106,9 +106,9 @@ function pspm {
         [HashTable]$private:param = @{
             Name = $Name
         }
-        if ($Scope) {$private:param.Add('Scope', $Scope)}
-        if ($Global) {$private:param.Add('Global', $Global)}
-        if ($NoImport) {$private:param.Add('NoImport', $NoImport)}
+        if ($Scope) { $private:param.Add('Scope', $Scope) }
+        if ($Global) { $private:param.Add('Global', $Global) }
+        if ($NoImport) { $private:param.Add('NoImport', $NoImport) }
 
         if ($PSBoundParameters.ContainsKey('Save')) {
             # Default Save parameter is $true in update
@@ -135,9 +135,9 @@ function pspm {
         [HashTable]$private:param = @{
             Name = $Name
         }
-        if ($Scope) {$private:param.Add('Scope', $Scope)}
-        if ($Global) {$private:param.Add('Global', $Global)}
-        if ($Save) {$private:param.Add('Save', $Save)}
+        if ($Scope) { $private:param.Add('Scope', $Scope) }
+        if ($Global) { $private:param.Add('Global', $Global) }
+        if ($Save) { $private:param.Add('Save', $Save) }
 
         # run preuninstall script
         pspm-run -CommandName 'preuninstall' -IfPresent
@@ -314,7 +314,7 @@ function pspm-install {
         $paramHash = @{
             Version     = $Name
             Path        = $local:ModuleDir
-            CommandType = if ($Force) {'Update'} else {'Install'}
+            CommandType = if ($Force) { 'Update' } else { 'Install' }
         }
 
         if ($Credential) {
@@ -335,12 +335,12 @@ function pspm-install {
             if ($Save) {
                 if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
                     if (-Not $PackageJson.dependencies) {
-                        $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{})
+                        $PackageJson | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([PSCustomObject]@{ })
                     }
                 }
                 else {
                     $PackageJson = [PSCustomObject]@{
-                        dependencies = [PSCustomObject]@{}
+                        dependencies = [PSCustomObject]@{ }
                     }
                 }
 
@@ -360,7 +360,7 @@ function pspm-install {
                 Name        = $local:moduleName
                 Version     = $local:moduleVersion
                 Path        = $local:ModuleDir
-                CommandType = if ($Force) {'Update'} else {'Install'}
+                CommandType = if ($Force) { 'Update' } else { 'Install' }
             }
 
             if ($Credential) {
@@ -495,18 +495,18 @@ function pspm-uninstall {
 
     # Uninstall from Name
     $AllModules = Get-ChildItem -Path $local:ModuleDir -Directory -ErrorAction SilentlyContinue
-    $AllModuleInfos = $AllModules | ForEach-Object {Get-ModuleInfo -Path $_.Fullname -ErrorAction SilentlyContinue}
+    $AllModuleInfos = $AllModules | ForEach-Object { Get-ModuleInfo -Path $_.Fullname -ErrorAction SilentlyContinue }
 
     @($Name).ForEach(
         {
             $targetName = $_.Split("@")[0]
             # $targetVersion = $_.Split("@")[1]
 
-            if ($targetModule = ($AllModuleInfos | Where-Object {$targetName -eq $_.Name})) {
+            if ($targetModule = ($AllModuleInfos | Where-Object { $targetName -eq $_.Name })) {
                 Write-Host ('{0}@{1}: Removing module.' -f $targetModule.Name, $targetModule.ModuleVersion)
 
                 Remove-Module -Name $targetModule -Force -ErrorAction SilentlyContinue
-                $AllModules | Where-Object {$_.Name -eq $targetModule.Name} | Remove-Item -Recurse -Force
+                $AllModules | Where-Object { $_.Name -eq $targetModule.Name } | Remove-Item -Recurse -Force
             }
             else {
                 # Which is better, error or warning ?
@@ -555,11 +555,11 @@ function pspm-run {
 
     if ($PackageJson = (Get-PackageJson -ErrorAction SilentlyContinue)) {
 
-        if ($PackageJson.scripts | Get-Member -MemberType NoteProperty -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $CommandName}) {
+        if ($PackageJson.scripts | Get-Member -MemberType NoteProperty -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $CommandName }) {
 
             # Load config
             if ($PackageJson.config) {
-                $PackageJson.config.PSObject.Members | Where-Object {$_.MemberType -eq 'NoteProperty'} | ForEach-Object {
+                $PackageJson.config.PSObject.Members | Where-Object { $_.MemberType -eq 'NoteProperty' } | ForEach-Object {
                     $fullname = 'pspm_package_config_' + $_.Name
                     Write-Verbose ('Load config:"{0}" from package.json. You can use config as $env:{1}' -f $_.Name, $fullname)
                     New-Item -Path Env:/$fullname -Value $_.Value -Force >$null
@@ -610,7 +610,7 @@ function pspm-load {
     $oldPSModulePathArray = $oldPSModulePath.Split(';')
 
     if ($oldPSModulePathArray -ccontains $tmpModulePath) {
-        $newPSModulePathArray = $oldPSModulePathArray | Where-Object {$_ -ne $tmpModulePath}
+        $newPSModulePathArray = $oldPSModulePathArray | Where-Object { $_ -ne $tmpModulePath }
         $newPSModulePath = $newPSModulePathArray -join ';'
     }
     else {
@@ -641,7 +641,7 @@ function pspm-unload {
     $oldPSModulePathArray = $oldPSModulePath.Split(';')
 
     if ($oldPSModulePathArray -ccontains $tmpModulePath) {
-        $newPSModulePathArray = $oldPSModulePathArray | Where-Object {$_ -ne $tmpModulePath}
+        $newPSModulePathArray = $oldPSModulePathArray | Where-Object { $_ -ne $tmpModulePath }
         $newPSModulePath = $newPSModulePathArray -join ';'
     }
     else {

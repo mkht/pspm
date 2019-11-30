@@ -8,11 +8,11 @@ function Test-AdminPrivilege {
     # Test Windows or Not
     if (Test-IsWindows) {
         # Check Administrator privilege
-        $local:user = 
+        $local:user =
         try {
             [Security.Principal.WindowsIdentity]::GetCurrent()
         }
-        catch {}
+        catch { }
         (New-Object -TypeName 'Security.Principal.WindowsPrincipal' -ArgumentList $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
     }
     else {

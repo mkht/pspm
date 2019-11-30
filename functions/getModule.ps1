@@ -28,7 +28,7 @@ function getModule {
 
     Convert-Path -Path $Path -ErrorAction Stop > $null  #throw exception when the path not exist
 
-    $paramHash = @{}
+    $paramHash = @{ }
     if ($PSBoundParameters.ContainsKey('Name')) {
         $paramHash.Name = $Name
     }
@@ -42,8 +42,8 @@ function getModule {
             $local:paramHash = $moduleType
             $paramHash.Remove('Type')
 
-            if ($Credential) {$paramHash.Credential = $Credential}
-            elseif ($Token) {$paramHash.Token = $Token}
+            if ($Credential) { $paramHash.Credential = $Credential }
+            elseif ($Token) { $paramHash.Token = $Token }
 
             getModuleFromGitHub @paramHash -Path $Path
         }
@@ -99,7 +99,7 @@ function getModuleVersionFromPSGallery {
     if ((Get-Command Find-Module).Parameters.AllowPrerelease) {
         # Only PowerShellGet 1.6.0+ has AllowPrerelease param
         try {
-            Find-Module -Name $Name -AllVersions -AllowPrerelease | ForEach-Object {$foundModules += $_}
+            Find-Module -Name $Name -AllVersions -AllowPrerelease | ForEach-Object { $foundModules += $_ }
         }
         catch {
             #Ignore Statement-terminating errors
@@ -107,7 +107,7 @@ function getModuleVersionFromPSGallery {
     }
     else {
         try {
-            Find-Module -Name $Name -AllVersions | ForEach-Object {$foundModules += $_}
+            Find-Module -Name $Name -AllVersions | ForEach-Object { $foundModules += $_ }
         }
         catch {
             #Ignore Statement-terminating errors
@@ -153,20 +153,20 @@ function getModuleFromGitHub {
     )
 
     $PlatformTemp =
-    if ($env:TEMP) {$env:TEMP}
-    elseif ($env:TMPDIR) {$env:TMPDIR}
-    elseif (Test-Path '/tmp' -PathType Container) {'/tmp'}
-    else {Write-Error 'Could not find standard temp folder'; return}
+    if ($env:TEMP) { $env:TEMP }
+    elseif ($env:TMPDIR) { $env:TMPDIR }
+    elseif (Test-Path '/tmp' -PathType Container) { '/tmp' }
+    else { Write-Error 'Could not find standard temp folder'; return }
 
     $TempDir = New-Item (Join-Path $PlatformTemp '/pspm') -Force -ItemType Directory -ErrorAction Stop
     $TempName = [System.Guid]::NewGuid().toString() + '.zip'
     $TargetDir = (Join-Path $Path $Name)
 
     # Get commit hash
-    $paramHash = @{Owner = $Account; Repository = $Name}
-    if ($Branch) {$paramHash.Ref = $Branch}
-    if ($Credential) {$paramHash.Credential = $Credential}
-    elseif ($Token) {$paramHash.Token = $Token}
+    $paramHash = @{Owner = $Account; Repository = $Name }
+    if ($Branch) { $paramHash.Ref = $Branch }
+    if ($Credential) { $paramHash.Credential = $Credential }
+    elseif ($Token) { $paramHash.Token = $Token }
 
     try {
         $CommitHash = Get-CommitHash @paramHash -ErrorAction Stop
@@ -199,9 +199,9 @@ function getModuleFromGitHub {
     try {
         #Download zip from GitHub
         Write-Host ('{0}: Downloading module from GitHub.' -f $Name)
-        $paramHash = @{Owner = $Account; Repository = $Name; Ref = $CommitHash}
-        if ($Credential) {$paramHash.Credential = $Credential}
-        elseif ($Token) {$paramHash.Token = $Token}
+        $paramHash = @{Owner = $Account; Repository = $Name; Ref = $CommitHash }
+        if ($Credential) { $paramHash.Credential = $Credential }
+        elseif ($Token) { $paramHash.Token = $Token }
         Get-Zipball @paramHash -OutFile (Join-Path $TempDir $TempName) -ErrorAction Stop
 
         if (Test-Path (Join-Path $TempDir $TempName)) {
@@ -290,10 +290,10 @@ function getModuleFromPSGallery {
     $foundModules = getModuleVersionFromPSGallery -Name $Name -ErrorAction SilentlyContinue
 
     if ($Latest) {
-        $targetModule = $foundModules | Sort-Object -Property {[pspm.SemVer]$_.Version} -Descending | Select-Object -First 1
+        $targetModule = $foundModules | Sort-Object -Property { [pspm.SemVer]$_.Version } -Descending | Select-Object -First 1
     }
     else {
-        $targetModule = $foundModules | Where-Object {($null -ne $_.Version) -and $SemVerRange.IsSatisfied($_.Version)} | Sort-Object -Property {[pspm.SemVer]$_.Version} -Descending | Select-Object -First 1
+        $targetModule = $foundModules | Where-Object { ($null -ne $_.Version) -and $SemVerRange.IsSatisfied($_.Version) } | Sort-Object -Property { [pspm.SemVer]$_.Version } -Descending | Select-Object -First 1
     }
 
     if (($targetModule | Measure-Object).count -le 0) {
@@ -340,7 +340,7 @@ function parseModuleType {
         $Version
     )
 
-    $Result = @{}
+    $Result = @{ }
 
     if ($PSBoundParameters.ContainsKey('Name')) {
         #dependencies

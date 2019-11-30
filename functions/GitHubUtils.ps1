@@ -190,12 +190,12 @@ function Invoke-GitHubRequest {
     else {
         if ($PSCmdlet.ParameterSetName -eq 'BasicAuth') {
             $private:base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(("{0}:{1}" -f $Credential.UserName, $Credential.GetNetworkCredential().Password)))
-            $paramHash.Headers = @{Authorization = ("Basic {0}" -f $private:base64AuthInfo)}
+            $paramHash.Headers = @{Authorization = ("Basic {0}" -f $private:base64AuthInfo) }
         }
         elseif ($PSCmdlet.ParameterSetName -eq 'OAuth') {
             $private:BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($private:Token)
             $private:PlainToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($private:BSTR)
-            $paramHash.Headers = @{Authorization = ("Bearer {0}" -f $private:PlainToken)}
+            $paramHash.Headers = @{Authorization = ("Bearer {0}" -f $private:PlainToken) }
         }
     }
 
