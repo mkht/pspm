@@ -53,6 +53,16 @@ You can specify the Module name with version or [semver](https://docs.npmjs.com/
 pspm install '<Module Name>@<Version>'  # e.g) pspm install 'Pester@4.1.0'
 ```
 
+#### Tips: Specify the repository
+
+If you want to install the module from specific repository (like Private repository)  
+You can specify the PSRepository name.  
+(You should register repositories before. See [Microsoft docs](https://docs.microsoft.com/en-us/powershell/module/powershellget/register-psrepository?view=powershell-7))
+
+```PowerShell
+pspm install '@<Repository Name>/<Module Name>'  # e.g) pspm install '@PrivateRepo/MyModule'
+```
+
 
 #### Tips: Get modules from GitHub :octocat:
 
@@ -380,6 +390,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.5.0**
+  - Add new syntax `pspm install @<Repo>/<Name>` for get modules from specific repository.
+
 + **1.4.5**
   - Fixed issue that an error occurs when the `pspm install` command was executed simultaneously in multiple processes.
   
