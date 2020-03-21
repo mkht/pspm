@@ -91,27 +91,36 @@ function getModuleVersionFromPSGallery {
         # The name of module
         [Parameter(Mandatory)]
         [string]
-        $Name
+        $Name,
+
+        [Parameter()]
+        [AllowEmptyString()]
+        [string]
+        $Repository = ''
     )
 
     $foundModules = @()
 
+    $paramHash = @{
+        Name        = $Name
+        AllVersions = $true
+    }
+
+    if (-not [string]::IsNullOrEmpty($Repository)) {
+        # Repository Specified
+        $paramHash.Repository = $Repository
+    }
+
     if ((Get-Command Find-Module).Parameters.AllowPrerelease) {
         # Only PowerShellGet 1.6.0+ has AllowPrerelease param
-        try {
-            Find-Module -Name $Name -AllVersions -AllowPrerelease | ForEach-Object { $foundModules += $_ }
-        }
-        catch {
-            #Ignore Statement-terminating errors
-        }
+        $paramHash.AllowPrerelease = $true
     }
-    else {
-        try {
-            Find-Module -Name $Name -AllVersions | ForEach-Object { $foundModules += $_ }
-        }
-        catch {
-            #Ignore Statement-terminating errors
-        }
+
+    try {
+        Find-Module @paramHash | ForEach-Object { $foundModules += $_ }
+    }
+    catch {
+        #Ignore Statement-terminating errors
     }
 
     if (($foundModules | Measure-Object).count -le 0) {
@@ -275,6 +284,13 @@ function getModuleFromPSGallery {
         }
     }
 
+    # Detect repository specific module (e.g: @MyRepo/MyModule)
+    if ($Name -match '^@(.+)/(.+)$') {
+        $Repository = $Matches[1]
+        $Name = $Matches[2]
+        Write-Verbose ('Repository specified; Repository:"{0}" / ModuleName:"{1}"' -f $Repository, $Name)
+    }
+
     if ((-not $Latest) -and (-not $Force)) {
         if (Test-Path (Join-path $Path $Name)) {
             $local:moduleInfo = Get-ModuleInfo -Path (Join-path $Path $Name) -ErrorAction SilentlyContinue
@@ -287,7 +303,7 @@ function getModuleFromPSGallery {
         }
     }
 
-    $foundModules = getModuleVersionFromPSGallery -Name $Name -ErrorAction SilentlyContinue
+    $foundModules = getModuleVersionFromPSGallery -Name $Name -Repository $Repository -ErrorAction SilentlyContinue
 
     if ($Latest) {
         $targetModule = $foundModules | Sort-Object -Property { [pspm.SemVer]$_.Version } -Descending | Select-Object -First 1
@@ -322,6 +338,9 @@ function getModuleFromPSGallery {
 
     if (Test-Path (Join-path $Path $Name)) {
         $moduleInfo = Get-ModuleInfo -Path (Join-path $Path $Name) -ErrorAction SilentlyContinue
+        if ($Repository) {
+            $moduleInfo.Repository = $Repository
+        }
         $moduleInfo
     }
 }
@@ -403,7 +422,7 @@ function parseModuleType {
             }
 
             # GitHub Urls
-            '^[^/]+/[^/]+' {
+            '^[^/@]+/[^/]+' {
                 $local:userAccount = $_.Split("/")[0]
                 $local:repoName = $_.Split("/")[1].Split("#")[0]
                 $local:branch = $_.Split("/")[1].Split("#")[1]
@@ -413,6 +432,20 @@ function parseModuleType {
                     Name    = $repoName
                     Account = $userAccount
                     Branch  = $branch
+                }
+
+                break
+            }
+
+            # @<repo>/<name>@<version> (PSGallery with repository specific)
+            '^(@.+/.+)@(.+)' {
+                $local:moduleName = $Matches[1]
+                $local:version = $Matches[2]
+
+                $Result = @{
+                    Type    = 'PSGallery'
+                    Name    = $moduleName
+                    Version = $version
                 }
 
                 break
@@ -434,7 +467,7 @@ function parseModuleType {
 
             # <name> (PSGallery)
             Default {
-                $local:moduleName = $_.Split("@")[0]
+                $local:moduleName = $_
 
                 $Result = @{
                     Type    = 'PSGallery'
