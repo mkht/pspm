@@ -1,6 +1,6 @@
 @{
     # Version number of this module.
-    ModuleVersion     = '1.5.0'
+    ModuleVersion     = '1.5.1'
 
     # ID used to uniquely identify this module
     GUID              = '43b54a10-c2d7-45b1-b46f-9a9da9da1c39'
@@ -47,7 +47,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'Add new syntax `pspm install @<Repo>/<Name>` for get modules from specific repository.'
+            ReleaseNotes = 'Improved stability when using an older version of PowerShellGet.'
 
         } # End of PSData hashtable
 

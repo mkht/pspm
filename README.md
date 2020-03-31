@@ -390,6 +390,10 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.5.1**
+ - Improved stability when using an older version of PowerShellGet.
+    (We recommend that you continue to update the latest PowerShellGet for the best experience.)  
+
 + **1.5.0**
   - Add new syntax `pspm install @<Repo>/<Name>` for get modules from specific repository.
 
