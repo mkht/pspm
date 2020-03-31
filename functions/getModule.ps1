@@ -116,15 +116,24 @@ function getModuleVersionFromPSGallery {
         $paramHash.AllowPrerelease = $true
     }
 
+    #Clear error stack
+    $Error.Clear()
     try {
-        Find-Module @paramHash | ForEach-Object { $foundModules += $_ }
+        Find-Module @paramHash 2>null | ForEach-Object { $foundModules += $_ }
     }
     catch {
         #Ignore Statement-terminating errors
     }
 
+    foreach ($e in $Error) {
+        if ($e.FullyQualifiedErrorId -match 'InvokeMethodOnNull') {
+            # Ignore InvokeMethodOnNull exception
+            continue
+        }
+        Write-Error -ErrorRecord $e
+    }
+
     if (($foundModules | Measure-Object).count -le 0) {
-        Write-Error ('{0}: No match found for the specified search criteria and module name' -f $Name)
         return $null
     }
     else {
