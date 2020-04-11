@@ -390,6 +390,10 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **Unreleased**
+  - Enable TLS 1.2 when loading the module (if not supported)  
+    This is in preparation for a [change in TLS support](https://devblogs.microsoft.com/powershell/powershell-gallery-tls-support/) in the PowerShell Gallery
+
 + **1.5.1**
   - Improved stability when using an older version of PowerShellGet.
     (We recommend that you continue to update the latest PowerShellGet for the best experience.)  
