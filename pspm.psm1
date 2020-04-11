@@ -4,6 +4,13 @@ $modulePath = $PSScriptRoot
 $classPath = '/Class'
 $functionsPath = '/functions'
 
+#region Enable TLS1.2 in the current session (if not supported)
+if (([Net.ServicePointManager]::SecurityProtocol -ne [Net.SecurityProtocolType]::SystemDefault) -and (-not ([Net.ServicePointManager]::SecurityProtocol -band [Net.SecurityProtocolType]::Tls12))) {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    Write-Verbose ('TLS 1.2 is enabled in the current session')
+}
+#endregion
+
 #region Load Class Libraries
 $DllList = @(
     '/bin/SemVer.dll'

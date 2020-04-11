@@ -165,8 +165,6 @@ function Invoke-GitHubRequest {
         [securestring] $Token
     )
 
-    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-
     [bool]$IsPS6Plus = [bool]((Get-Command Invoke-WebRequest).Parameters.Authentication)
 
     $paramHash = @{
