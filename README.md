@@ -12,7 +12,7 @@ You can manage PowerShell modules [npm](https://www.npmjs.com/) like commands.
 + Windows or macOS
 
 > Testing platforms:  
-> Windows 10 Pro x64 1809 with PowerShell 5.1 & PowerShell Core 6.1.1  
+> Windows 10 Pro x64 1909 with PowerShell 5.1 & PowerShell 7.0.0  
 > macOS 10.14 Mojave with PowerShell Core 6.1.1
 
 ----
@@ -390,9 +390,10 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
-+ **Unreleased**
++ **1.6.0**
   - Enable TLS 1.2 when loading the module (if not supported)  
     This is in preparation for a [change in TLS support](https://devblogs.microsoft.com/powershell/powershell-gallery-tls-support/) in the PowerShell Gallery
+  - Fix some potential issues in the internal function `Format-Json` (Thanks @vody!)
 
 + **1.5.1**
   - Improved stability when using an older version of PowerShellGet.  
