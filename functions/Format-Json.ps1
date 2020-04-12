@@ -12,12 +12,12 @@ function Format-Json {
     $indent = 0;
     $result = ($json -Split '\n' |
         % {
-            if ($_ -match '[\}\]]') {
+            if ($_ -match '^\s*[\}\]]') {
                 # This line contains  ] or }, decrement the indentation level
                 $indent--
             }
             $line = (' ' * $indent * 2) + $_.TrimStart().Replace(':  ', ': ')
-            if ($_ -match '[\{\[]') {
+            if ($_ -match '[\[\{](?!(.*[\{\[\"]))') {
                 # This line contains [ or {, increment the indentation level
                 $indent++
             }
