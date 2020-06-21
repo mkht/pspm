@@ -119,7 +119,7 @@ function getModuleVersionFromPSGallery {
     #Clear error stack
     $Error.Clear()
     try {
-        Find-Module @paramHash 2>null | ForEach-Object { $foundModules += $_ }
+        Find-Module @paramHash 2>$null | ForEach-Object { $foundModules += $_ }
     }
     catch {
         #Ignore Statement-terminating errors
