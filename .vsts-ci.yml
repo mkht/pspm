@@ -1,12 +1,12 @@
-#---------------------------------# 
-#      trigger configuration      # 
-#---------------------------------# 
+#---------------------------------#
+#      trigger configuration      #
+#---------------------------------#
 trigger:
 - master
 
-#---------------------------------# 
-#      environment configuration  # 
-#---------------------------------# 
+#---------------------------------#
+#      environment configuration  #
+#---------------------------------#
 resources:
 - repo: self
 queue:
@@ -19,11 +19,11 @@ steps:
   inputs:
     scriptType: inlineScript
     inlineScript: |
-     Install-Module -Name Pester -Repository PSGallery -MinimumVersion 4.2.0 -SkipPublisherCheck -Force -Scope CurrentUser
-     
-#---------------------------------# 
-#      test configuration         # 
-#---------------------------------# 
+     Install-Module -Name Pester -Repository PSGallery -MinimumVersion 4.2.0 -MaximumVersion 4.999.999 -SkipPublisherCheck -Force -Scope CurrentUser
+
+#---------------------------------#
+#      test configuration         #
+#---------------------------------#
 - task: PowerShell@1
   displayName: test
   inputs:
@@ -31,10 +31,10 @@ steps:
     inlineScript: |
      $testResultsFile = "./TestsResults.xml"
      $result = Invoke-Pester -OutputFormat NUnitXml -OutputFile $testResultsFile -PassThru
-     if ($result.FailedCount -gt 0) { 
+     if ($result.FailedCount -gt 0) {
          throw "$($result.FailedCount) tests failed."
      }
-     if ($result.PassedCount -eq 0) { 
+     if ($result.PassedCount -eq 0) {
          throw "No tests passed."
      }
 
