@@ -390,6 +390,10 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.6.1**
+  - Fixed issue that a "null" file being saved in the current directory.
+  - Pin Pester module to 4.x because Pester 5.x is currently not compatible.
+
 + **1.6.0**
   - Enable TLS 1.2 when loading the module (if not supported)  
     This is in preparation for a [change in TLS support](https://devblogs.microsoft.com/powershell/powershell-gallery-tls-support/) in the PowerShell Gallery
