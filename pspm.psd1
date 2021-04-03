@@ -1,6 +1,6 @@
 @{
     # Version number of this module.
-    ModuleVersion     = '1.6.1'
+    ModuleVersion     = '1.6.2'
 
     # ID used to uniquely identify this module
     GUID              = '43b54a10-c2d7-45b1-b46f-9a9da9da1c39'
@@ -15,7 +15,7 @@
     CompanyName       = ''
 
     # Copyright statement for this module
-    Copyright         = '(c) 2020 mkht. All rights reserved.'
+    Copyright         = '(c) 2021 mkht. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description       = 'PowerShell Package Manager'

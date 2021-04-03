@@ -390,6 +390,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.6.2**
+  - Fixed issue that the prerelease version of the module does not handling property.
+
 + **1.6.1**
   - Fixed issue that a "null" file being saved in the current directory.
   - Pin Pester module to 4.x because Pester 5.x is currently not compatible.
