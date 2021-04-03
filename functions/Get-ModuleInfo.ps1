@@ -27,6 +27,9 @@ function Get-ModuleInfo {
     else {
         $moduleInfo = Import-PowerShellDataFile $moduleManifest.PsPath
         $moduleInfo.Name = $moduleManifest.BaseName
+        if(-not [string]::IsNullOrWhiteSpace($moduleInfo.PrivateData.PSData.Prerelease)){
+            $moduleInfo.ModuleVersion = $moduleInfo.ModuleVersion + '-' + $moduleInfo.PrivateData.PSData.Prerelease
+        }
         $moduleInfo
     }
 }

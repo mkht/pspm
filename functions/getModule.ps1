@@ -329,7 +329,7 @@ function getModuleFromPSGallery {
     if (-not $Force) {
         if (Test-Path (Join-path $Path $Name)) {
             $local:moduleInfo = Get-ModuleInfo -Path (Join-path $Path $Name) -ErrorAction SilentlyContinue
-            if (([Version]$targetModule.Version) -eq $moduleInfo.ModuleVersion) {
+            if (([pspm.SemVer]$targetModule.Version) -eq $moduleInfo.ModuleVersion) {
                 # Already downloaded
                 Write-Host ('{0}@{1}: Module already exists in Modules directory. Skip download.' -f $Name, $targetModule.Version)
                 $moduleInfo
