@@ -168,7 +168,8 @@ function Invoke-GitHubRequest {
     [bool]$IsPS6Plus = [bool]((Get-Command Invoke-WebRequest).Parameters.Authentication)
 
     $paramHash = @{
-        Uri = $URI
+        Uri     = $URI
+        Headers = @{Accept = 'application/vnd.github+json' }
     }
 
     if ($OutFile) {
@@ -191,13 +192,13 @@ function Invoke-GitHubRequest {
         if ($PSCmdlet.ParameterSetName -eq 'BasicAuth') {
             Write-Verbose ('Request to GitHub using credential (user:{0})' -f $Credential.UserName)
             $private:base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(("{0}:{1}" -f $Credential.UserName, $Credential.GetNetworkCredential().Password)))
-            $paramHash.Headers = @{Authorization = ("Basic {0}" -f $private:base64AuthInfo) }
+            $paramHash.Headers.Authorization = ("Basic {0}" -f $private:base64AuthInfo)
         }
         elseif ($PSCmdlet.ParameterSetName -eq 'OAuth') {
             Write-Verbose ('Request to GitHub using token')
             $private:BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($private:Token)
             $private:PlainToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($private:BSTR)
-            $paramHash.Headers = @{Authorization = ("Bearer {0}" -f $private:PlainToken) }
+            $paramHash.Headers.Authorization = ("Bearer {0}" -f $private:PlainToken)
         }
     }
 
@@ -206,20 +207,17 @@ function Invoke-GitHubRequest {
     }
     catch {
         $errorResponse = $_.Exception.Response
-        $errorResponseStream = $errorResponse.GetResponseStream()
-        $errorResponseStream.Seek(0, [System.IO.SeekOrigin]::Begin)
-        $streamReader = New-Object System.IO.StreamReader $errorResponseStream
-        $message = $streamReader.ReadToEnd()
-        if ($message) {
-            $messageObject = ConvertFrom-Json -InputObject $message -ErrorAction SilentlyContinue
-            if ($messageObject.message) {
-                $message = $messageObject.message
-            }
-            throw ('Remote server returned error ({0}). Message : {1}' -f $errorResponse.StatusCode.Value__, $message)
+        if ($IsPS6Plus) {
+            $message = $errorResponse.ReasonPhrase
         }
         else {
-            throw
+            $errorResponseStream = $errorResponse.GetResponseStream()
+            $errorResponseStream.Seek(0, [System.IO.SeekOrigin]::Begin)
+            $streamReader = New-Object System.IO.StreamReader $errorResponseStream
+            $messageJson = $streamReader.ReadToEnd()
+            $message = ConvertFrom-Json -InputObject $messageJson -ErrorAction SilentlyContinue
         }
+        throw ('Remote server returned error ({0}). Message : {1}' -f $errorResponse.StatusCode.Value__, $message)
     }
     finally {
         if ($streamReader) {
