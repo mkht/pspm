@@ -390,6 +390,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.6.3**
+  - Fixed issue in error handling when downloading modules from GitHub in PowerShell 7.
+
 + **1.6.2**
   - Fixed issue that the prerelease version of the module does not handling property.
 
