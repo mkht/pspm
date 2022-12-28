@@ -159,6 +159,10 @@ function getModuleFromGitHub {
         [string]
         $Branch,
 
+        [Parameter()]
+        [string]
+        $SubDir,
+
         [Parameter(Mandatory)]
         [string]
         $Path,
@@ -224,8 +228,20 @@ function getModuleFromGitHub {
 
         if (Test-Path (Join-Path $TempDir $TempName)) {
             Expand-Archive -Path (Join-Path $TempDir $TempName) -DestinationPath $TempDir
-            $downloadedModule = Get-ChildItem -Path $TempDir -Filter ('{0}-{1}*' -f $Account, $Name) -Directory
-
+            if ($SubDir) {
+                $SubDir = $SubDir -replace '[.%$]'
+                if (-not (Test-Path -LiteralPath (Join-Path $TempDir ('{0}-{1}-{2}/{3}' -f $Account, $Name, $CommitHash.SubString(0, 7), $SubDir)) -PathType Container)) {
+                    Write-Error ('The specified sub directory "{0}" does not exists in this repogitory.' -f $SubDir)
+                    return
+                }
+                else {
+                    $TargetPath = (Join-Path $TempDir ('{0}-{1}-{2}/{3}' -f $Account, $Name, $CommitHash.SubString(0, 7), $SubDir))
+                }
+            }
+            else {
+                $TargetPath = (Join-Path $TempDir ('{0}-{1}-{2}' -f $Account, $Name, $CommitHash.SubString(0, 7)))
+            }
+            $downloadedModule = Get-Item -LiteralPath $TargetPath
             $moduleInfo = $downloadedModule.PsPath | Get-ModuleInfo
 
             #Copy to /Modules folder
@@ -389,15 +405,17 @@ function parseModuleType {
 
             # GitHub Urls
             '^[^/]+/[^/]+' {
-                $local:userAccount = $_.Split("/")[0]
-                $local:repoName = $_.Split("/")[1].Split("#")[0]
-                $local:branch = $_.Split("/")[1].Split("#")[1]
+                $local:subdir = $_.split('::', 2)[1]
+                $local:branch = $_.split('::', 2)[0].Split('#', 2)[1]
+                $local:repoName = $_.split('::', 2)[0].Split('#', 2)[0].Split('/', 2)[1]
+                $local:userAccount = $_.split('::', 2)[0].Split('#', 2)[0].Split('/', 2)[0]
 
                 $Result = @{
                     Type    = 'GitHub'
-                    Name    = $repoName
-                    Account = $userAccount
-                    Branch  = $branch
+                    Name    = $local:repoName
+                    Account = $local:userAccount
+                    Branch  = $local:branch
+                    SubDir  = $local:subdir
                 }
 
                 break
@@ -432,15 +450,17 @@ function parseModuleType {
 
             # GitHub Urls
             '^[^/@]+/[^/]+' {
-                $local:userAccount = $_.Split("/")[0]
-                $local:repoName = $_.Split("/")[1].Split("#")[0]
-                $local:branch = $_.Split("/")[1].Split("#")[1]
+                $local:subdir = $_.split('::', 2)[1]
+                $local:branch = $_.split('::', 2)[0].Split('#', 2)[1]
+                $local:repoName = $_.split('::', 2)[0].Split('#', 2)[0].Split('/', 2)[1]
+                $local:userAccount = $_.split('::', 2)[0].Split('#', 2)[0].Split('/', 2)[0]
 
                 $Result = @{
                     Type    = 'GitHub'
-                    Name    = $repoName
-                    Account = $userAccount
-                    Branch  = $branch
+                    Name    = $local:repoName
+                    Account = $local:userAccount
+                    Branch  = $local:branch
+                    SubDir  = $local:subdir
                 }
 
                 break
@@ -462,8 +482,8 @@ function parseModuleType {
 
             # <name>@<version> (PSGallery)
             '^.+@.+' {
-                $local:moduleName = $_.Split("@")[0]
-                $local:version = $_.Split("@")[1]
+                $local:moduleName = $_.Split('@')[0]
+                $local:version = $_.Split('@')[1]
 
                 $Result = @{
                     Type    = 'PSGallery'

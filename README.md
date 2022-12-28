@@ -67,12 +67,13 @@ pspm install '@<Repository Name>/<Module Name>'  # e.g) pspm install '@PrivateRe
 #### Tips: Get modules from GitHub :octocat:
 
 You can download modules from GitHub repos.  
-Just `<user>/<repo-name>` or `<user>/<repo-name>#<ref>`.  
+Just `<user>/<repo-name>` or `<user>/<repo-name>#<ref>`, or `<user>/<repo-name>#<ref>::path/to/subdir`.  
 `<ref>` as `branch` or `commit-hash` or `Tag`  
 
 ```PowerShell
 pspm install '<user>/<repo-name>'
 pspm install '<user>/<repo-name>#<ref>'
+pspm install '<user>/<repo-name>#<ref>::path/to/subdir'
 # e.g) pspm install 'pester/Pester#7aa9e63'
 ```
 
@@ -390,6 +391,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.7.0**
+  - **NEW**: Add new syntax `pspm install <user>/<repo-name>#<ref>::path/to/subdir` for fetching subdirectories within github repos.
+
 + **1.6.3**
   - Fixed issue in error handling when downloading modules from GitHub in PowerShell 7.
 

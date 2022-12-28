@@ -1,6 +1,6 @@
 @{
     # Version number of this module.
-    ModuleVersion     = '1.6.3'
+    ModuleVersion     = '1.7.0'
 
     # ID used to uniquely identify this module
     GUID              = '43b54a10-c2d7-45b1-b46f-9a9da9da1c39'
@@ -47,7 +47,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'Fixed issue that a "null" file being saved in the current directory.'
+            ReleaseNotes = ''
 
         } # End of PSData hashtable
 
