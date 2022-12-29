@@ -12,8 +12,8 @@ You can manage PowerShell modules [npm](https://www.npmjs.com/) like commands.
 + Windows or macOS
 
 > Testing platforms:  
-> Windows 10 Pro x64 1909 with PowerShell 5.1 & PowerShell 7.0.0  
-> macOS 10.14 Mojave with PowerShell Core 6.1.1
+> Windows 11 Pro x64 22H2 with PowerShell 5.1 & PowerShell 7.3.1  
+> macOS Monterey 12.6 Mojave with PowerShell 7.3.1
 
 ----
 ## Installation
