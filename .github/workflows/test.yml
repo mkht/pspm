@@ -24,6 +24,8 @@ jobs:
           Get-ChildItem 'env:' | Format-Table -AutoSize -Wrap
 
       - name: Test
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: Invoke-Pester -CI -Output Detailed
 
   Tests_PS7:
@@ -50,4 +52,6 @@ jobs:
           Get-ChildItem 'env:' | Format-Table -AutoSize -Wrap
 
       - name: Test
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: Invoke-Pester -CI -Output Detailed
