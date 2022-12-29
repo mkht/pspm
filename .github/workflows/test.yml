@@ -1,0 +1,53 @@
+name: Test
+
+on: [push]
+
+jobs:
+  Tests_WinPS5:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: powershell
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Update PowerShellGet
+        run: Install-Module PowerShellGet -Force -AllowClobber -Scope AllUsers -SkipPublisherCheck
+
+      - name: Install Pester
+        run: Install-Module Pester -Force -AllowClobber -Scope CurrentUser -SkipPublisherCheck
+
+      - name: Collect environment
+        run: |
+          $PSVersionTable
+          Get-ChildItem 'env:' | Format-Table -AutoSize -Wrap
+
+      - name: Test
+        run: Invoke-Pester -CI -Output Detailed
+
+  Tests_PS7:
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: pwsh
+
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Pester
+        run: Install-Module Pester -Force -AllowClobber -Scope CurrentUser -SkipPublisherCheck
+
+      - name: Collect environment
+        run: |
+          $PSVersionTable
+          Get-ChildItem 'env:' | Format-Table -AutoSize -Wrap
+
+      - name: Test
+        run: Invoke-Pester -CI -Output Detailed
