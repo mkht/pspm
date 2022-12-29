@@ -1,41 +1,41 @@
 {
-    "scripts": {
-        "preinstall": "Write-Output 'preinstall'",
-        "install": "Write-Output 'install'",
-        "postinstall": "Write-Output 'postinstall'",
-        "preupdate": "Write-Output 'preupdate'",
-        "update": "Write-Output 'update'",
-        "postupdate": "Write-Output 'postupdate'",
-        "preuninstall": "Write-Output 'preuninstall'",
-        "uninstall": "Write-Output 'uninstall'",
-        "postuninstall": "Write-Output 'postuninstall'",
-        "prestart": "Write-Output 'prestart'",
-        "start": "Write-Output 'start'",
-        "poststart": "Write-Output 'poststart'",
-        "prerestart": "Write-Output 'prerestart'",
-        "restart": "Write-Output 'restart'",
-        "postrestart": "Write-Output 'postrestart'",
-        "prestop": "Write-Output 'prestop'",
-        "stop": "Write-Output 'stop'",
-        "poststop": "Write-Output 'poststop'",
-        "pretest": "Write-Output 'pretest'",
-        "test": "Write-Output 'test'",
-        "posttest": "Write-Output 'posttest'",
-        "prexxx": "Write-Output 'prexxx'",
-        "xxx": "Write-Output 'xxx'",
-        "postxxx": "Write-Output 'postxxx'",
-        "argtest": "Write-Output $args[0]",
-        "configtest": "Write-Output $env:pspm_package_config_variable"
-    },
-    "config": {
-      "variable": "8080"
-    },
-    "dependencies": {
-        "KanaUtils": "latest",
-        "powershell-yaml": "0.4.2",
-        "AWSPowerShell.NetCore": "<=4.0.99",
-        "7ZipArchiveDsc": "mkht/7ZipArchiveDsc",
-        "DHCPClient-PS": "mkht/DHCPClient-PS#25dd83b",
-        "PSSQLite": "RamblingCookieMonster/PSSQLite#73a21c::PSSQLite"
-    }
+  "scripts": {
+    "preinstall": "Write-Output 'preinstall'",
+    "install": "Write-Output 'install'",
+    "postinstall": "Write-Output 'postinstall'",
+    "preupdate": "Write-Output 'preupdate'",
+    "update": "Write-Output 'update'",
+    "postupdate": "Write-Output 'postupdate'",
+    "preuninstall": "Write-Output 'preuninstall'",
+    "uninstall": "Write-Output 'uninstall'",
+    "postuninstall": "Write-Output 'postuninstall'",
+    "prestart": "Write-Output 'prestart'",
+    "start": "Write-Output 'start'",
+    "poststart": "Write-Output 'poststart'",
+    "prerestart": "Write-Output 'prerestart'",
+    "restart": "Write-Output 'restart'",
+    "postrestart": "Write-Output 'postrestart'",
+    "prestop": "Write-Output 'prestop'",
+    "stop": "Write-Output 'stop'",
+    "poststop": "Write-Output 'poststop'",
+    "pretest": "Write-Output 'pretest'",
+    "test": "Write-Output 'test'",
+    "posttest": "Write-Output 'posttest'",
+    "prexxx": "Write-Output 'prexxx'",
+    "xxx": "Write-Output 'xxx'",
+    "postxxx": "Write-Output 'postxxx'",
+    "argtest": "Write-Output $args[0]",
+    "configtest": "Write-Output $env:pspm_package_config_variable"
+  },
+  "config": {
+    "variable": "8080"
+  },
+  "dependencies": {
+    "KanaUtils": "latest",
+    "powershell-yaml": "0.4.2",
+    "AWSPowerShell.NetCore": "<=4.0.99",
+    "7ZipArchiveDsc": "mkht/7ZipArchiveDsc",
+    "DHCPClient-PS": "mkht/DHCPClient-PS#25dd83b",
+    "PSSQLite": "RamblingCookieMonster/PSSQLite#73a21c::PSSQLite"
+  }
 }
