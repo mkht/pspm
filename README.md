@@ -13,7 +13,7 @@ You can manage PowerShell modules [npm](https://www.npmjs.com/) like commands.
 
 > Testing platforms:  
 > Windows 11 Pro x64 22H2 with PowerShell 5.1 & PowerShell 7.3.1  
-> macOS Monterey 12.6 Mojave with PowerShell 7.3.1
+> macOS Monterey 12.6 with PowerShell 7.3.1
 
 ----
 ## Installation
