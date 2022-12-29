@@ -7,7 +7,7 @@ You can manage PowerShell modules [npm](https://www.npmjs.com/) like commands.
 ----
 ## Requirements
 
-+ Windows PowerShell 5.0 or higher
++ Windows PowerShell 5.1 or higher
 + PowerShell Core 6.0 or higher
 + Windows or macOS
 
@@ -391,8 +391,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
-+ **1.7.0**
++ **1.7.1**
   - **NEW**: Add new syntax `pspm install <user>/<repo-name>#<ref>::path/to/subdir` for fetching subdirectories within github repos.
+  - Change minimum supported version of PowerShell to 5.1
 
 + **1.6.3**
   - Fixed issue in error handling when downloading modules from GitHub in PowerShell 7.

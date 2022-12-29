@@ -1,36 +1,39 @@
 @{
     # Version number of this module.
-    ModuleVersion     = '1.7.0'
+    ModuleVersion        = '1.7.1'
+
+    # Supported PSEditions
+    CompatiblePSEditions = 'Core', 'Desktop'
 
     # ID used to uniquely identify this module
-    GUID              = '43b54a10-c2d7-45b1-b46f-9a9da9da1c39'
+    GUID                 = '43b54a10-c2d7-45b1-b46f-9a9da9da1c39'
 
     # Author of this module
-    Author            = 'mkht'
+    Author               = 'mkht'
 
     # Script module or binary module file associated with this manifest.
-    RootModule        = 'pspm.psm1'
+    RootModule           = 'pspm.psm1'
 
     # Company or vendor of this module
-    CompanyName       = ''
+    CompanyName          = ''
 
     # Copyright statement for this module
-    Copyright         = '(c) 2021 mkht. All rights reserved.'
+    Copyright            = '(c) 2021 mkht. All rights reserved.'
 
     # Description of the functionality provided by this module
-    Description       = 'PowerShell Package Manager'
+    Description          = 'PowerShell Package Manager'
 
     # Minimum version of the Windows PowerShell engine required by this module
-    PowerShellVersion = '5.0'
+    PowerShellVersion    = '5.1'
 
     # Functions to export from this module
-    FunctionsToExport = @('pspm')
+    FunctionsToExport    = @('pspm')
 
     # Format files (.ps1xml) to be loaded when importing this module.
-    FormatsToProcess  = @('./Class/pspm.SemVer.format.ps1xml')
+    FormatsToProcess     = @('./Class/pspm.SemVer.format.ps1xml')
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
-    PrivateData       = @{
+    PrivateData          = @{
 
         PSData = @{
 
