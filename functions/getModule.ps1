@@ -405,10 +405,11 @@ function parseModuleType {
 
             # GitHub Urls
             '^[^/]+/[^/]+' {
-                $local:subdir = $_.split('::', 2)[1]
-                $local:branch = $_.split('::', 2)[0].Split('#', 2)[1]
-                $local:repoName = $_.split('::', 2)[0].Split('#', 2)[0].Split('/', 2)[1]
-                $local:userAccount = $_.split('::', 2)[0].Split('#', 2)[0].Split('/', 2)[0]
+                $local:delim = [string[]]('::')
+                $local:subdir = $_.split($local:delim, 2, 0)[1]
+                $local:branch = $_.split($local:delim, 2, 0)[0].Split('#', 2)[1]
+                $local:repoName = $_.split($local:delim, 2, 0)[0].Split('#', 2)[0].Split('/', 2)[1]
+                $local:userAccount = $_.split($local:delim, 2, 0)[0].Split('#', 2)[0].Split('/', 2)[0]
 
                 $Result = @{
                     Type    = 'GitHub'
@@ -450,10 +451,11 @@ function parseModuleType {
 
             # GitHub Urls
             '^[^/@]+/[^/]+' {
-                $local:subdir = $_.split('::', 2)[1]
-                $local:branch = $_.split('::', 2)[0].Split('#', 2)[1]
-                $local:repoName = $_.split('::', 2)[0].Split('#', 2)[0].Split('/', 2)[1]
-                $local:userAccount = $_.split('::', 2)[0].Split('#', 2)[0].Split('/', 2)[0]
+                $local:delim = [string[]]('::')
+                $local:subdir = $_.split($local:delim, 2, 0)[1]
+                $local:branch = $_.split($local:delim, 2, 0)[0].Split('#', 2)[1]
+                $local:repoName = $_.split($local:delim, 2, 0)[0].Split('#', 2)[0].Split('/', 2)[1]
+                $local:userAccount = $_.split($local:delim, 2, 0)[0].Split('#', 2)[0].Split('/', 2)[0]
 
                 $Result = @{
                     Type    = 'GitHub'
