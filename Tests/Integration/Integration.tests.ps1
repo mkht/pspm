@@ -27,7 +27,7 @@ Describe 'pspm integration test' {
 
     Context 'Command: script' {
         BeforeAll {
-            Copy-Item (Join-Path $PSScriptRoot 'package.json') -Destination $TestDrive
+            Copy-Item (Join-Path $PSScriptRoot 'test-package.json') -Destination (Join-Path $TestDrive 'package.json') -Force
             Push-Location $TestDrive
         }
 
@@ -75,7 +75,7 @@ Describe 'pspm integration test' {
         }
 
         BeforeEach {
-            Copy-Item (Join-Path $PSScriptRoot 'package.json') -Destination $TestDrive -Force
+            Copy-Item (Join-Path $PSScriptRoot 'test-package.json') -Destination (Join-Path $TestDrive 'package.json') -Force
             $iv = $null
         }
 
@@ -179,7 +179,7 @@ Describe 'pspm integration test' {
         }
 
         BeforeEach {
-            Copy-Item (Join-Path $PSScriptRoot 'package.json') -Destination $TestDrive -Force
+            Copy-Item (Join-Path $PSScriptRoot 'test-package.json') -Destination (Join-Path $TestDrive 'package.json') -Force
             $iv = $null
         }
 
@@ -209,7 +209,7 @@ Describe 'pspm integration test' {
         }
 
         BeforeEach {
-            Copy-Item (Join-Path $PSScriptRoot 'package.json') -Destination $TestDrive -Force
+            Copy-Item (Join-Path $PSScriptRoot 'test-package.json') -Destination (Join-Path $TestDrive 'package.json') -Force
         }
 
         AfterEach {
@@ -241,7 +241,7 @@ Describe 'pspm integration test' {
         }
 
         BeforeEach {
-            Copy-Item (Join-Path $PSScriptRoot 'package.json') -Destination $TestDrive -Force
+            Copy-Item (Join-Path $PSScriptRoot 'test-package.json') -Destination (Join-Path $TestDrive 'package.json') -Force
         }
 
         AfterEach {
