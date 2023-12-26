@@ -391,6 +391,9 @@ This is valid `package.json` sample.
 
 ----
 ## Change log
++ **1.8.0**
+  - Fix minor issues in the PowerShell 7.4 environment.
+
 + **1.7.1**
   - **NEW**: Add new syntax `pspm install <user>/<repo-name>#<ref>::path/to/subdir` for fetching subdirectories within github repos.
   - Change minimum supported version of PowerShell to 5.1

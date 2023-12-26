@@ -11,8 +11,14 @@ function Get-PSModulePath {
     # Determine platforms
     if (Test-IsWindows -eq $true) {
         # Windows
-        $script:UserPSModulePath = Join-Path ([Environment]::GetFolderPath("MyDocuments")) 'WindowsPowerShell/Modules'
-        $script:GlobalPSModulePath = Join-Path $env:ProgramFiles 'WindowsPowerShell/Modules'
+        if ($PSVersionTable.PSEdition -eq 'Core') {
+            $script:UserPSModulePath = Join-Path ([Environment]::GetFolderPath("MyDocuments")) 'PowerShell/Modules'
+            $script:GlobalPSModulePath = Join-Path $env:ProgramFiles 'PowerShell/Modules'
+        }
+        else {
+            $script:UserPSModulePath = Join-Path ([Environment]::GetFolderPath("MyDocuments")) 'WindowsPowerShell/Modules'
+            $script:GlobalPSModulePath = Join-Path $env:ProgramFiles 'WindowsPowerShell/Modules'
+        }
     }
     else {
         # Others (MacOS or Linux)
