@@ -10,7 +10,7 @@ jobs:
         shell: powershell
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Update PowerShellGet
         run: Install-Module PowerShellGet -Force -AllowClobber -Scope AllUsers -SkipPublisherCheck
@@ -41,7 +41,7 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install Pester
         run: Install-Module Pester -Force -AllowClobber -Scope CurrentUser -SkipPublisherCheck
